@@ -4,23 +4,25 @@ use anyhow::{anyhow, Result};
 #[derive(Debug)]
 struct Submarine {
     position: usize,
-    depth: usize
+    depth: usize,
+    aim: usize,
 }
 
 impl Submarine {
     fn new() -> Submarine {
-        Submarine{position: 0, depth: 0}
+        Submarine{position: 0, depth: 0, aim: 0}
     }
-    fn forward(&mut self, n: usize) -> Result<()> {
-        self.position += n;
+    fn forward(&mut self, x: usize) -> Result<()> {
+        self.position += x;
+        self.depth += self.aim * x;
         Ok(())
     }
-    fn down(&mut self, n: usize) -> Result<()> {
-        self.depth += n;
+    fn down(&mut self, x: usize) -> Result<()> {
+        self.aim += x;
         Ok(())
     }
-    fn up(&mut self, n: usize) -> Result<()> {
-        self.depth -= n;
+    fn up(&mut self, x: usize) -> Result<()> {
+        self.aim -= x;
         Ok(())
     }
     fn position(&self) -> Result<usize> {
@@ -40,9 +42,9 @@ fn main() -> Result<()> {
             .collect::<Vec<&str>>()[..]
         {
             [direction, amount] => match (direction, amount.parse::<usize>().ok().unwrap()) {
-                ("forward", n) => sub.forward(n),
-                ("down", n) => sub.down(n),
-                ("up", n) => sub.up(n),
+                ("forward", x) => sub.forward(x),
+                ("down", x) => sub.down(x),
+                ("up", x) => sub.up(x),
                 _ => unreachable!(),
             }
             _ => panic!("line not valid"),
