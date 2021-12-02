@@ -7,7 +7,7 @@ fn main() {
     let mut last: Option<usize> = None;
     let mut cnt = 0;
     for line in lines {
-        // Get the next values for a and b, rebased to zero and ordered
+        // Get the next value
         let a: Vec<usize> = line
             .unwrap()
             .split_whitespace()
