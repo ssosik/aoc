@@ -24,10 +24,9 @@ fn main() -> Result<()> {
         .map(|x| usize::from_str_radix(x.unwrap().as_str(), 2).unwrap())
         .collect::<Vec<usize>>();
 
-    let mut bit_idx = 0;
-    let mut msb1_mask = 31;
-    while !&numbers.is_empty() {
-        println!("Mask: {:05b} ({})", msb1_mask, msb1_mask);
+    let word_len = 5;
+    let mut mask = vec![1,1,1,1,1];
+    for bit_idx in 0..word_len {
         // Find the larger bit count for the current bit_idx
         let mut cnt0: usize = 0;
         let mut cnt1: usize = 0;
@@ -41,33 +40,49 @@ fn main() -> Result<()> {
             };
         }
         println!("");
+        println!("Cnt0 {} Cnt1 {}", cnt0, cnt1);
         if cnt0 > cnt1 {
-            let mask = 31 - (2_usize.pow((4 - bit_idx) as u32));
-            println!("0 apply mask (31 - (2.pow(4 - {}))) {} {:05b} to {:05b}", bit_idx, mask, mask, msb1_mask);
-            msb1_mask = msb1_mask & mask;
-            println!("MSB MASK{:05b}", msb1_mask);
-        };
-
-        bit_idx += 1;
-
-        let mut to_filter: BTreeSet<usize> = BTreeSet::new();
-        for n in &numbers {
-            to_filter.insert(*n);
+            println!("More 0 at idx {}", bit_idx);
+            mask[bit_idx] = 0;
+        } else {
+            println!("More 1s at idx {}", bit_idx);
         }
+        let mask_str = mask.iter().map(|x| x.to_string()).collect::<Vec<String>>().join("");
+        let mask = usize::from_str_radix(mask_str.as_str(), 2).unwrap();
+        println!("Mask: {} {}", mask_str, mask);
 
-        for n in &numbers {
+        numbers = numbers.into_iter().filter(|x| *x & mask > 0)
+            .inspect(|x| println!("x {:?} {}", x, *x & mask))
+            .collect();
+        println!("Filtered Numbers {:?}", numbers);
 
-            let masked1 = n & msb1_mask;
-            if masked1 < 2_usize.pow((5 - bit_idx) as u32) {
-                to_filter.remove(n);
-                println!("Remove {} because masked {} is less than {}", n, masked1, 2_usize.pow((5 - bit_idx) as u32) );
-            } else {
-                println!("keep {} because masked {} >= {}", n, masked1, 2_usize.pow((5 - bit_idx) as u32) );
-                }
-        }
+        //if cnt0 > cnt1 {
+        //    let mask = 31 - (2_usize.pow((4 - bit_idx) as u32));
+        //    println!("0 apply mask (31 - (2.pow(4 - {}))) {} {:05b} to {:05b}", bit_idx, mask, mask, msb1_mask);
+        //    msb1_mask = msb1_mask & mask;
+        //    println!("MSB MASK{:05b}", msb1_mask);
+        //};
 
-        println!("filtered {:?}", to_filter);
-        numbers = to_filter.iter().map(|x| *x).collect();
+        //bit_idx += 1;
+
+        //let mut to_filter: BTreeSet<usize> = BTreeSet::new();
+        //for n in &numbers {
+        //    to_filter.insert(*n);
+        //}
+
+        //for n in &numbers {
+
+        //    let masked1 = n & msb1_mask;
+        //    if masked1 < 2_usize.pow((5 - bit_idx) as u32) {
+        //        to_filter.remove(n);
+        //        println!("Remove {} because masked {} is less than {}", n, masked1, 2_usize.pow((5 - bit_idx) as u32) );
+        //    } else {
+        //        println!("keep {} because masked {} >= {}", n, masked1, 2_usize.pow((5 - bit_idx) as u32) );
+        //        }
+        //}
+
+        //println!("filtered {:?}", to_filter);
+        //numbers = to_filter.iter().map(|x| *x).collect();
 
 
         //match cnt0 > cnt1 {
