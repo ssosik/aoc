@@ -31,7 +31,8 @@ fn main() -> Result<()> {
     let mut bit_counts: BTreeMap<usize, BTreeMap<u8, usize>> = BTreeMap::new();
 
     for line in lines.clone() {
-        let bin_str = format!("{:012b}", line);
+        //let bin_str = format!("{:012b}", line);
+        let bin_str = format!("{:05b}", line);
         //println!("{} ", bin_str);
 
         for (idx, bit) in bin_str.chars().enumerate() {
@@ -48,7 +49,7 @@ fn main() -> Result<()> {
     println!("{:?}", bit_counts);
 
     for i in bit_counts.keys() {
-        match bit_counts[i][&0] > bit_counts[i][&1] {
+        match bit_counts[i].get(&0).or(Some(&0)) > bit_counts[i].get(&1).or(Some(&0)) {
             true => {
                 gamma_rate.push_str("0");
                 epsilon_rate.push_str("1");
