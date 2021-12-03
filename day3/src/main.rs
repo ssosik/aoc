@@ -25,7 +25,7 @@ fn main() -> Result<()> {
         .collect::<Vec<usize>>();
 
     let word_len = 5;
-    let mut mask = vec![1,1,1,1,1];
+    let mut mask: Vec<Option<usize>> = vec![None, None, None, None, None];
     for bit_idx in 0..word_len {
         // Find the larger bit count for the current bit_idx
         let mut cnt0: usize = 0;
@@ -43,17 +43,43 @@ fn main() -> Result<()> {
         println!("Cnt0 {} Cnt1 {}", cnt0, cnt1);
         if cnt0 > cnt1 {
             println!("More 0 at idx {}", bit_idx);
-            mask[bit_idx] = 0;
+            mask[bit_idx] = Some(0);
         } else {
             println!("More 1s at idx {}", bit_idx);
+            mask[bit_idx] = Some(1);
         }
-        let mask_str = mask.iter().map(|x| x.to_string()).collect::<Vec<String>>().join("");
-        let mask = usize::from_str_radix(mask_str.as_str(), 2).unwrap();
-        println!("Mask: {} {}", mask_str, mask);
+        println!("Mask: {:?}", mask);
+        //let mask_str = mask.iter().map(|x| x.to_string()).collect::<Vec<String>>().join("");
+        //let mask = usize::from_str_radix(mask_str.as_str(), 2).unwrap();
 
-        numbers = numbers.into_iter().filter(|x| *x & mask > 0)
-            .inspect(|x| println!("x {:?} {}", x, *x & mask))
-            .collect();
+        let mut tmp: Vec<usize> = Vec::new();
+        for n in &numbers {
+            let nstr = format!("{:05b}", n);
+            let mut discard = false;
+            for (idx, bit) in nstr.chars().enumerate() {
+                let bit = bit.to_digit(10_u32).expect("to digit failed") as usize;
+                if mask[idx].is_some() && mask[idx].unwrap() != bit {
+                    //println!("discard n {}", nstr);
+                    discard = true;
+                    break;
+                //} else {
+                    //print!("keep ");
+                }
+                    //println!("going");
+            }
+            if !discard {
+                tmp.push(*n);
+            }
+
+            println!("n {}={}", n, nstr);
+        }
+        //let foo: (usize, usize) = numbers.into_iter().enumerate().into_iter().filter(|(i, x)| {
+        //    true
+        //})
+        //    .inspect(|(i, x)| println!("{} {}", i, x))
+        //    .collect();
+        println!("Tmp Numbers {:?}", tmp);
+        numbers = tmp;
         println!("Filtered Numbers {:?}", numbers);
 
         //if cnt0 > cnt1 {
