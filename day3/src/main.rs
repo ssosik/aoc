@@ -17,7 +17,6 @@ use std::io::{BufRead, BufReader};
 
 // Change the alias to `Box<error::Error>`.
 type Result<T> = std::result::Result<T, Box<dyn error::Error>>;
-const RADIX: u32 = 10;
 
 fn main() -> Result<()> {
     let mut numbers = BufReader::new(std::io::stdin())
@@ -25,19 +24,16 @@ fn main() -> Result<()> {
         .map(|x| usize::from_str_radix(x.unwrap().as_str(), 2).unwrap())
         .collect::<Vec<usize>>();
 
-    let mut gamma_rate = String::from("");
-    let mut epsilon_rate = String::from("");
-    let mut bit_counts: BTreeMap<usize, BTreeMap<u8, usize>> = BTreeMap::new();
-
     let mut bit_idx = 0;
     let mut msb1_mask = 31;
     while !&numbers.is_empty() {
+        println!("Mask: {:05b} ({})", msb1_mask, msb1_mask);
         // Find the larger bit count for the current bit_idx
         let mut cnt0: usize = 0;
         let mut cnt1: usize = 0;
         for n in &numbers {
             let bin_str = format!("{:05b}", n);
-            print!("{} ", bin_str);
+            print!("{}:{} ", n, bin_str);
             match bin_str.chars().collect::<Vec<char>>()[bit_idx].to_digit(2).unwrap() {
                 0 => cnt0 += 1,
                 1 => cnt1 += 1,
@@ -45,13 +41,14 @@ fn main() -> Result<()> {
             };
         }
         println!("");
-        msb1_mask = if cnt0 > cnt1 {
-            msb1_mask | (0 << (4 - bit_idx))
-        } else {
-            msb1_mask | (1 << (4 - bit_idx))
+        if cnt0 > cnt1 {
+            let mask = 31 - (2_usize.pow((4 - bit_idx) as u32));
+            println!("0 apply mask (31 - (2.pow(4 - {}))) {} {:05b} to {:05b}", bit_idx, mask, mask, msb1_mask);
+            msb1_mask = msb1_mask & mask;
+            println!("MSB MASK{:05b}", msb1_mask);
         };
 
-        println!("Mask: {:05b} ({})", msb1_mask, msb1_mask);
+        bit_idx += 1;
 
         let mut to_filter: BTreeSet<usize> = BTreeSet::new();
         for n in &numbers {
@@ -61,10 +58,12 @@ fn main() -> Result<()> {
         for n in &numbers {
 
             let masked1 = n & msb1_mask;
-            if masked1 == 0 {
+            if masked1 < 2_usize.pow((5 - bit_idx) as u32) {
                 to_filter.remove(n);
-            }
-            println!("CNT1 Mask {} {} {:05b}", n, masked1, msb1_mask);
+                println!("Remove {} because masked {} is less than {}", n, masked1, 2_usize.pow((5 - bit_idx) as u32) );
+            } else {
+                println!("keep {} because masked {} >= {}", n, masked1, 2_usize.pow((5 - bit_idx) as u32) );
+                }
         }
 
         println!("filtered {:?}", to_filter);
@@ -84,7 +83,6 @@ fn main() -> Result<()> {
         //println!("cnt1: {}, 1:{}, 2:{}, 3:{}, 4:{}, 5:{}",
         //    cnt1, cnt1 << 1, cnt1 << 2, cnt1 << 3, cnt1 << 4, cnt1 << 5);
         //numbers = vec![];
-        bit_idx += 1;
     }
 
     //for line in numbers.clone() {
