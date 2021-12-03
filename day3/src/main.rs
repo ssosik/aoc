@@ -23,16 +23,18 @@ fn main() -> Result<()> {
     let lines = BufReader::new(std::io::stdin())
         .lines()
         .filter(|x| x.is_ok())
-        .map(|x| x.unwrap())
-        .collect::<Vec<String>>();
+        .map(|x| usize::from_str_radix(x.unwrap().as_str(), 2).unwrap())
+        .collect::<Vec<usize>>();
 
     let mut gamma_rate = String::from("");
     let mut epsilon_rate = String::from("");
     let mut bit_counts: BTreeMap<usize, BTreeMap<u8, usize>> = BTreeMap::new();
 
     for line in lines.clone() {
-        let num = line.chars().iter().join("");
-        for (idx, bit) in line.chars().enumerate() {
+        let bin_str = format!("{:012b}", line);
+        //println!("{} ", bin_str);
+
+        for (idx, bit) in bin_str.chars().enumerate() {
             let bit = bit.to_digit(RADIX).expect("to digit failed") as u8;
             bit_counts
                 .entry(idx)
@@ -40,9 +42,10 @@ fn main() -> Result<()> {
                     m.entry(bit).and_modify(|cnt| *cnt += 1).or_insert(1);
                 })
                 .or_insert(BTreeMap::from([(bit, 1)]));
-            //print!("{}:{} ", idx, bit);
         }
     }
+
+    println!("{:?}", bit_counts);
 
     for i in bit_counts.keys() {
         match bit_counts[i][&0] > bit_counts[i][&1] {
@@ -57,22 +60,21 @@ fn main() -> Result<()> {
         };
     }
 
-    println!("{:?}", bit_counts);
     println!("Gamma:{} Epsilon:{}", gamma_rate, epsilon_rate);
     let gamma_rate = isize::from_str_radix(gamma_rate.as_str(), 2).unwrap();
     let epsilon_rate = isize::from_str_radix(epsilon_rate.as_str(), 2).unwrap();
     println!("Gamma:{} Epsilon:{}", gamma_rate, epsilon_rate);
     println!("Ans:{}", gamma_rate * epsilon_rate);
 
-    for line in lines {
-        for (idx, bit) in line.chars().enumerate() {
-            let bit = bit.to_digit(RADIX).expect("to digit failed") as u8;
-            print!("{}:{} ", idx, bit);
-        }
-        println!("");
-    }
+    //for line in lines {
+    //    for (idx, bit) in line.chars().enumerate() {
+    //        let bit = bit.to_digit(RADIX).expect("to digit failed") as u8;
+    //        print!("{}:{} ", idx, bit);
+    //    }
+    //    println!("");
+    //}
 
-    let test = 5 | 0b0010;
+    let test = 5 | 2;
 
     println!("Test: {}", test);
     Ok(())
