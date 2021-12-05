@@ -14,7 +14,7 @@ fn print_type_of<T: ?Sized>(_: &T) {
     println!("{}", std::any::type_name::<T>())
 }
 
-#[derive(Debug,Clone)]
+#[derive(Debug, Clone)]
 struct Card(Array2D<Option<usize>>);
 
 impl Card {
@@ -67,14 +67,15 @@ fn main() -> Result<()> {
     }
     println!("{:?}", cards);
 
-    let n = 29;
-    for mut card in cards {
-        for (i, row) in card.clone().0.rows_iter().enumerate() {
-            for (j, val) in row.enumerate() {
-                if val.is_some() && n == val.unwrap() {
-                    card.0.set(i, j, None).expect("Failed to mark number");
-                    if card.bingo() {
-                        println!("bingo! {} {} {}", n, i, j);
+    for n in marks {
+        for mut card in cards.clone() {
+            for (i, row) in card.clone().0.rows_iter().enumerate() {
+                for (j, val) in row.enumerate() {
+                    if val.is_some() && n == val.unwrap() {
+                        card.0.set(i, j, None).expect("Failed to mark number");
+                        if card.bingo() {
+                            println!("bingo! {} {} {}", n, i, j);
+                        }
                     }
                 }
             }
