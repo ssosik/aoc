@@ -6,7 +6,7 @@ use std::io::{BufRead, BufReader};
 type Result<T> = std::result::Result<T, Box<dyn error::Error>>;
 
 fn main() -> Result<()> {
-    let _grid = Array2D::filled_with(0, 1000, 1000);
+    let mut grid = Array2D::filled_with(0, 1000, 1000);
 
     let input = BufReader::new(std::io::stdin());
     let lines = input.lines();
@@ -36,7 +36,17 @@ fn main() -> Result<()> {
             _ => unreachable!(),
         };
         println!("x1:{} y1:{} x2:{} y2:{}", x1, y1, x2, y2);
+        if x1 == x2 {
+            for y in y1..=y2 {
+                grid.get_mut(x1, y).map(|n| *n += 1);
+            }
+        } else {
+            for x in x1..=x2 {
+                grid.get_mut(x, y1).map(|n| *n += 1);
+            }
+        }
     }
+    println!("Grid: {:?}", grid);
 
     Ok(())
 }
