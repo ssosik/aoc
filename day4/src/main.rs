@@ -24,15 +24,30 @@ impl Card {
         //self.0.as_rows().iter().all(|x| x.is_none());
         for row in self.0.as_rows() {
             if row.iter().all(|x| x.is_none()) {
+            //if row.iter().any(|x| x.is_none()) {
                 return true;
             }
         }
         for row in self.0.as_columns() {
             if row.iter().all(|x| x.is_none()) {
+            //if row.iter().any(|x| x.is_none()) {
                 return true;
             }
         }
         false
+    }
+
+    fn mark(&mut self, n: usize) {
+        for (i, row) in self.0.clone().rows_iter().enumerate() {
+            for (j, val) in row.enumerate() {
+                //println!("J:{} Val:{:?}", j, val);
+                if val.is_some() && n == val.unwrap() {
+                    //println!("Set it");
+                    self.0.set(i, j, None).expect("Failed to mark number");
+                    //println!("Card {:?}", self);
+                }
+            }
+        }
     }
 }
 
@@ -65,19 +80,14 @@ fn main() -> Result<()> {
         );
         cards.push(Card(card));
     }
-    println!("{:?}", cards);
+    //println!("{:?}", cards);
 
     for n in marks {
-        for mut card in cards.clone() {
-            for (i, row) in card.clone().0.rows_iter().enumerate() {
-                for (j, val) in row.enumerate() {
-                    if val.is_some() && n == val.unwrap() {
-                        card.0.set(i, j, None).expect("Failed to mark number");
-                        if card.bingo() {
-                            println!("bingo! {} {} {}", n, i, j);
-                        }
-                    }
-                }
+        println!("N:{}", n);
+        for card in &mut cards {
+            &card.mark(n);
+            if card.bingo() {
+                println!("bingo! {} {:?}", n, card);
             }
         }
     }
