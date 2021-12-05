@@ -14,6 +14,28 @@ fn print_type_of<T: ?Sized>(_: &T) {
     println!("{}", std::any::type_name::<T>())
 }
 
+#[derive(Debug,Clone)]
+struct Card(Array2D<Option<usize>>);
+
+impl Card {
+    fn bingo(&self) -> bool {
+        //self.0.rows_iter().all(|x| x.is_none()) || self.0.columns_iter().all(|x| x.is_none())
+        //self.0.rows_iter().inspect(|x| println!("X{:?}", x)).collect();
+        //self.0.as_rows().iter().all(|x| x.is_none());
+        for row in self.0.as_rows() {
+            if row.iter().all(|x| x.is_none()) {
+                return true;
+            }
+        }
+        for row in self.0.as_columns() {
+            if row.iter().all(|x| x.is_none()) {
+                return true;
+            }
+        }
+        false
+    }
+}
+
 fn main() -> Result<()> {
     let input = BufReader::new(std::io::stdin());
     let mut lines = input.lines();
@@ -26,7 +48,7 @@ fn main() -> Result<()> {
         .collect();
     println!("{:?}", marks);
 
-    let mut cards: Vec<Array2D<Option<usize>>> = Vec::new();
+    let mut cards: Vec<Card> = Vec::new();
     for chunk in lines.collect::<Vec<_>>().chunks(6) {
         let card = Array2D::from_rows(
             &(chunk[..])
@@ -41,17 +63,19 @@ fn main() -> Result<()> {
                 })
                 .collect::<Vec<_>>(),
         );
-        cards.push(card);
+        cards.push(Card(card));
     }
     println!("{:?}", cards);
 
     let n = 29;
     for mut card in cards {
-        for (i, row) in card.clone().rows_iter().enumerate() {
+        for (i, row) in card.clone().0.rows_iter().enumerate() {
             for (j, val) in row.enumerate() {
                 if val.is_some() && n == val.unwrap() {
-                    card.set(i, j, None).expect("Failed to mark number");
-                    println!("bingo! {} {} {}", n, i, j);
+                    card.0.set(i, j, None).expect("Failed to mark number");
+                    if card.bingo() {
+                        println!("bingo! {} {} {}", n, i, j);
+                    }
                 }
             }
         }
