@@ -36,7 +36,7 @@ fn main() -> Result<()> {
                     row.as_ref()
                         .unwrap()
                         .split_whitespace()
-                        .filter_map(|n| Some(n.parse::<usize>().ok()))
+                        .map(|n| n.parse::<usize>().ok())
                         .collect::<Vec<_>>()
                 })
                 .collect::<Vec<_>>(),
@@ -50,7 +50,7 @@ fn main() -> Result<()> {
         for (i, row) in card.clone().rows_iter().enumerate() {
             for (j, val) in row.enumerate() {
                 if val.is_some() && n == val.unwrap() {
-                    card.set(i, j, None);
+                    card.set(i, j, None).expect("Failed to mark number");
                     println!("bingo! {} {} {}", n, i, j);
                 }
             }
