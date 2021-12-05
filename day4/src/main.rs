@@ -23,21 +23,32 @@ fn main() -> Result<()> {
             .collect();
     println!("{:?}", marks);
 
+    for chunk in lines.collect::<Vec<_>>().chunks(6) {
+        println!("{:?}", chunk);
+        //chunk.skip(1).map(|row| row.unwrap()).collect();
+    }
+
     //let card: Array2D<usize>;
     //lines.next();
     //let rows: Vec<Vec<&str>> = lines.take(5).collect();
     //println!("5 rows{:?}", rows);
 
     //lines.skip(1).take(5).inspect(|x| println!("{:?}", x)).collect::<Vec<_>>();
-    loop {
-    lines.by_ref()
-        .skip(1)
-        .take(5)
-        .inspect(|x| println!("x{:?}", x))
-        .collect::<Vec<_>>();
-        //.map(|x| x.unwrap().split_whitespace()
-        //    .filter_map(|v| v.parse::<usize>().ok()));
-        }
+    //loop {
+    //    lines.by_ref()
+    //        .skip(1)
+    //        .take(5)
+    //        .inspect(|x| println!("x{:?}", x))
+    //        .collect::<Vec<_>>();
+    //        //.map(|x| x.unwrap().split_whitespace()
+    //        //    .filter_map(|v| v.parse::<usize>().ok()));
+    //    if lines.by_ref().is_empty() {
+    //        break;
+    //        }
+    //    //if lines.by_ref().peekable().peek().is_none() {
+    //    //    break;
+    //    //}
+    //}
 
     //for line in lines {
     //    let line: Vec<usize> = line
