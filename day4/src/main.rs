@@ -27,6 +27,7 @@ fn main() -> Result<()> {
             .collect();
     println!("{:?}", marks);
 
+    let mut cards: Vec<Array2D<Option<usize>>> = Vec::new();
     for chunk in lines.collect::<Vec<_>>().chunks(6) {
         let card = Array2D::from_rows(&(chunk[..])
             .iter()
@@ -35,12 +36,13 @@ fn main() -> Result<()> {
                 row.as_ref()
                     .unwrap()
                     .split_whitespace()
-                    .filter_map(|n| n.parse::<usize>().ok())
+                    .filter_map(|n| Some(n.parse::<usize>().ok()))
                     .collect::<Vec<_>>()
             })
             .collect::<Vec<_>>());
-        println!("{:?}", card);
+        cards.push(card);
     }
+    println!("{:?}", cards);
 
     Ok(())
 }
