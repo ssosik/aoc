@@ -30,10 +30,15 @@ fn main() -> Result<()> {
     for chunk in lines.collect::<Vec<_>>().chunks(6) {
         //println!("{:?} {:?}", chunk, print_type_of(chunk));
         //println!("{:?}", &chunk[1..]);
-        let it = &(chunk[1..])
+        let it = &(chunk[..])
             .iter()
+            .skip(1)
             .map(|x| {
-                x.as_ref().unwrap()
+                x.as_ref()
+                    .unwrap()
+                    .split_whitespace()
+                    .filter_map(|n| n.parse::<usize>().ok())
+                    .collect::<Vec<_>>()
             })
             .collect::<Vec<_>>();
         println!("{:?}", it);
