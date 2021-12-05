@@ -30,7 +30,12 @@ fn main() -> Result<()> {
     for chunk in lines.collect::<Vec<_>>().chunks(6) {
         //println!("{:?} {:?}", chunk, print_type_of(chunk));
         //println!("{:?}", &chunk[1..]);
-        let it = &(chunk[1..]).iter().map(|x| x.as_ref().unwrap()).collect::<Vec<_>>();
+        let it = &(chunk[1..])
+            .iter()
+            .map(|x| {
+                x.as_ref().unwrap()
+            })
+            .collect::<Vec<_>>();
         println!("{:?}", it);
         //let it = chunk.skip(1).map(|row| row.unwrap()).collect();
         //println!("{:?}", chunk[1..]);
