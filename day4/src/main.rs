@@ -14,6 +14,10 @@ struct Card {
 //    }
 //}
 
+fn print_type_of<T: ?Sized>(_: &T) {
+    println!("{}", std::any::type_name::<T>())
+}
+
 fn main() -> Result<()> {
     let input = BufReader::new(std::io::stdin());
     let mut lines = input.lines();
@@ -24,8 +28,12 @@ fn main() -> Result<()> {
     println!("{:?}", marks);
 
     for chunk in lines.collect::<Vec<_>>().chunks(6) {
-        println!("{:?}", chunk);
-        //chunk.skip(1).map(|row| row.unwrap()).collect();
+        //println!("{:?} {:?}", chunk, print_type_of(chunk));
+        //println!("{:?}", &chunk[1..]);
+        let it = &(chunk[1..]).iter().map(|x| x.as_ref().unwrap()).collect::<Vec<_>>();
+        println!("{:?}", it);
+        //let it = chunk.skip(1).map(|row| row.unwrap()).collect();
+        //println!("{:?}", chunk[1..]);
     }
 
     //let card: Array2D<usize>;
