@@ -36,6 +36,16 @@ impl Card {
         }
         Ok(())
     }
+
+    fn sum(&self) -> Result<usize> {
+        Ok(self.0.elements_row_major_iter().fold(0, |acc, x| {
+            if x.is_some() {
+                acc + x.unwrap()
+            } else {
+                acc
+            }
+        }))
+    }
 }
 
 fn main() -> Result<()> {
@@ -48,7 +58,6 @@ fn main() -> Result<()> {
         .split_terminator(',')
         .filter_map(|v| v.parse::<usize>().ok())
         .collect();
-    println!("{:?}", marks);
 
     let mut cards: Vec<Card> = Vec::new();
     for chunk in lines.collect::<Vec<_>>().chunks(6) {
@@ -67,14 +76,18 @@ fn main() -> Result<()> {
         );
         cards.push(Card(card));
     }
-    //println!("{:?}", cards);
 
     for n in marks {
-        //println!("N:{}", n);
         for card in &mut cards {
             let _ = &card.mark(n);
             if card.bingo() {
-                println!("bingo! {} {:?}", n, card);
+                println!(
+                    "bingo! {} {:?}\n{} {}",
+                    n,
+                    card,
+                    card.sum().unwrap(),
+                    card.sum().unwrap() * n
+                );
                 return Ok(());
             }
         }
