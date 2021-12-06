@@ -56,10 +56,9 @@ fn main() -> Result<()> {
                 }
             }
         } else {
-            println!("Huh? {} {} {} {}", x1, y1, x2, y2);
-        //    unreachable!()
+            println!("Diagonal {} {} {} {}", x1, y1, x2, y2);
+            //    unreachable!()
         };
-
     }
     let mut cnt = 0;
     //println!("Grid: {:?}", grid);
