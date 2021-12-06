@@ -35,15 +35,28 @@ fn main() -> Result<()> {
         };
         println!("x1:{} y1:{} x2:{} y2:{}", x1, y1, x2, y2);
         if x1 == x2 {
-            for y in y1..=y2 {
-                grid.get_mut(y, x1).map(|n| *n += 1);
+            if y1 < y2 {
+                for y in y1..=y2 {
+                    grid.get_mut(y, x1).map(|n| *n += 1);
+                }
+            } else {
+                for y in y2..=y1 {
+                    grid.get_mut(y, x1).map(|n| *n += 1);
+                }
             }
         //} else {
         } else if y1 == y2 {
-            for x in x1..=x2 {
-                grid.get_mut(y1, x).map(|n| *n += 1);
+            if x1 < 2 {
+                for x in x1..=x2 {
+                    grid.get_mut(y1, x).map(|n| *n += 1);
+                }
+            } else {
+                for x in x2..=x1 {
+                    grid.get_mut(y1, x).map(|n| *n += 1);
+                }
             }
-        //} else {
+        } else {
+            println!("Huh? {} {} {} {}", x1, y1, x2, y2);
         //    unreachable!()
         };
 
