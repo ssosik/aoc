@@ -1,7 +1,8 @@
+#![feature(iter_zip)]
 use array2d::Array2D;
-
 use std::error;
 use std::io::{BufRead, BufReader};
+use std::iter::zip;
 
 type Result<T> = std::result::Result<T, Box<dyn error::Error>>;
 
@@ -50,9 +51,40 @@ fn main() -> Result<()> {
             for x in x1..=x2 {
                 grid.get_mut(y1, x).map(|n| *n += 1);
             }
-        } else {
+        } else if (x1 as isize - x2 as isize).abs() == (y1 as isize - y2 as isize).abs() {
             println!("Diagonal {} {} {} {}", x1, y1, x2, y2);
-            //    unreachable!()
+            if (x1 > x2 && y1 > y2) || (x1 < x2 && y1 < y2) {
+                // Diagonal from top left to bottom right
+                let (x1, x2) = match x1 < x2 {
+                    true => (x1, x2),
+                    false => (x2, x1),
+                };
+                let (y1, y2) = match y1 < y2 {
+                    true => (y1, y2),
+                    false => (y2, y1),
+                };
+                for (x, y) in zip(x1..=x2, y1..=y2) {
+                    grid.get_mut(y, x).map(|n| *n += 1);
+                }
+            } else if x1 > x2 && y1 < y2 {
+                // Diagonal from top right to bottom left
+                let mut x = x1;
+                for y in y1..=y2 {
+                    grid.get_mut(y, x).map(|n| *n += 1);
+                    x -= 1;
+                }
+            } else if x1 < x2 && y1 > y2 {
+                // Diagonal from bottom left to top right
+                let mut y = y1;
+                for x in x1..=x2 {
+                    grid.get_mut(y, x).map(|n| *n += 1);
+                    y -= 1;
+                }
+            } else {
+                unreachable!()
+            }
+        } else {
+            unreachable!()
         };
     }
     let mut cnt = 0;
