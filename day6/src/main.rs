@@ -1,56 +1,33 @@
-
-
-use std::error;
+use std::collections::BTreeMap;
 use std::io::{BufRead, BufReader};
-use std::thread;
 
-type Result<T> = std::result::Result<T, Box<dyn error::Error>>;
-
-#[tokio::main]
-async fn main() {
-    let n = 80;
-    let input = BufReader::new(std::io::stdin())
+fn main() {
+    let n = 256;
+    let mut counts: BTreeMap<u8, usize> = BufReader::new(std::io::stdin())
         .lines()
         .next()
         .unwrap()
         .unwrap()
         .split(',')
-        .filter_map(|v| v.parse::<u8>().ok())
-        .collect::<Vec<u8>>();
-    let mut jobs = Vec::new();
-    for x in input {
-        let thread = thread::spawn(move || breed(x, n));
-        jobs.push(thread);
-    }
-    let mut sum = 0;
-    for job in jobs {
-        sum += job.join().unwrap();
-    }
-    //let sum = jobs.iter().fold(0, |acc, x| &x.clone().join().unwrap() + acc);
-    //let jobs: Vec<dyn Future<Output = usize>> = Vec::with_capacity(100);
-    println!("sum {}", sum);
-}
-
-fn breed(s: u8, n: u16) -> usize {
-    let mut input = vec![s];
-
-    for i in 1..=n {
-        let mut tmp: Vec<u8> = Vec::new();
-        let mut babies: Vec<u8> = Vec::new();
-        for t in input.clone() {
-            tmp.push(match t {
-                0 => {
-                    babies.push(8);
-                    6
-                }
-                _ => t - 1,
-            });
+        .fold(BTreeMap::new(), |mut bt, n| {
+            bt.entry(n.parse::<u8>().unwrap())
+                .and_modify(|e| *e += 1)
+                .or_insert(1);
+            bt
+        });
+    for _ in 1..=n {
+        let mut new: BTreeMap<u8, usize> = BTreeMap::new();
+        for k in counts.clone().keys().rev() {
+            if k == &0 {
+                new.insert(8, counts[k]);
+                new.entry(6)
+                    .and_modify(|e| *e += counts[k])
+                    .or_insert_with(|| counts[k]);
+            } else {
+                new.insert(*k - 1, counts[k]);
+            }
         }
-        input = tmp;
-        input.extend(babies);
-        //println!("{:>5}: input {:?}", i, input);
-        println!("{}", i);
+        counts = new;
     }
-    println!("Len: {}", input.len());
-    input.len()
+    println!("sum {}", counts.values().sum::<usize>());
 }
