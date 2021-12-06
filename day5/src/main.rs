@@ -6,13 +6,11 @@ use std::io::{BufRead, BufReader};
 type Result<T> = std::result::Result<T, Box<dyn error::Error>>;
 
 fn main() -> Result<()> {
-    let mut grid = Array2D::filled_with(0, 1000, 1000);
+    //let mut grid = Array2D::filled_with(0, 1000, 1000);
+    let mut grid = Array2D::filled_with(0, 10, 10);
 
     let input = BufReader::new(std::io::stdin());
-    let lines = input.lines();
-    for line in lines {
-        //println!("line {:?}", line);
-        //let (start, end) = line.unwrap().split(" -> ").collect::<Vec<String>>()[..];
+    for line in input.lines() {
         let (x1, y1, x2, y2) = match line.unwrap().split(" -> ").collect::<Vec<&str>>()[..] {
             [start, end] => {
                 let (x1, y1) = match start
@@ -38,13 +36,17 @@ fn main() -> Result<()> {
         println!("x1:{} y1:{} x2:{} y2:{}", x1, y1, x2, y2);
         if x1 == x2 {
             for y in y1..=y2 {
-                grid.get_mut(x1, y).map(|n| *n += 1);
+                grid.get_mut(y, x1).map(|n| *n += 1);
             }
-        } else {
+        //} else {
+        } else if y1 == y2 {
             for x in x1..=x2 {
-                grid.get_mut(x, y1).map(|n| *n += 1);
+                grid.get_mut(y1, x).map(|n| *n += 1);
             }
-        }
+        //} else {
+        //    unreachable!()
+        };
+
     }
     let mut cnt = 0;
     //println!("Grid: {:?}", grid);
