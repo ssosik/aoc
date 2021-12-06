@@ -46,7 +46,27 @@ fn main() -> Result<()> {
             }
         }
     }
-    println!("Grid: {:?}", grid);
+    let mut cnt = 0;
+    //println!("Grid: {:?}", grid);
+    for row in grid.rows_iter() {
+        //println!("{:?}", row.into_iter().collect::<Vec<usize>>());
+        for item in row {
+            if item == &0 {
+                print!(".");
+            } else {
+                print!("{}", item);
+            }
+            if item > &1 {
+                cnt += 1;
+            }
+        }
+        println!("");
+    }
+    let overlap_cnt: usize = grid
+        .as_row_major()
+        .into_iter()
+        .fold(0, |acc, x| acc + if x > 1 { 1 } else { 0 });
+    println!("Overlap Count: {} {}", overlap_cnt, cnt);
 
     Ok(())
 }
