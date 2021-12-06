@@ -1,8 +1,8 @@
-use std::io::{BufRead, BufReader};
-use futures::future::{join_all, try_join_all};
-use futures::Future;
-use std::thread;
+
+
 use std::error;
+use std::io::{BufRead, BufReader};
+use std::thread;
 
 type Result<T> = std::result::Result<T, Box<dyn error::Error>>;
 
@@ -19,8 +19,8 @@ async fn main() {
         .collect::<Vec<u8>>();
     let mut jobs = Vec::new();
     for x in input {
-     let thread = thread::spawn(move || breed(x, n.clone()));
-     jobs.push(thread);
+        let thread = thread::spawn(move || breed(x, n));
+        jobs.push(thread);
     }
     let mut sum = 0;
     for job in jobs {
