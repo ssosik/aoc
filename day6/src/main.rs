@@ -1,5 +1,5 @@
 use std::io::{BufRead, BufReader};
-use futures::future::try_join_all;
+use futures::future::{join_all, try_join_all};
 use futures::Future;
 use std::error;
 
@@ -16,13 +16,17 @@ async fn main() {
         .split(',')
         .filter_map(|v| v.parse::<u8>().ok())
         .collect::<Vec<u8>>();
-    let jobs = input.iter().map(|x| breed(*x, n));
-    let nums: Vec<usize> = try_join_all(jobs).await.unwrap();
+    let mut jobs = Vec::new();
+    for x in input {
+     let fut = breed(x, n);
+     jobs.push(fut);
+    }
+    let nums: Vec<usize> = join_all(jobs).await;
     //let jobs: Vec<dyn Future<Output = usize>> = Vec::with_capacity(100);
     println!("input {:?} {}", nums, nums.iter().fold(0, |acc, x| x + acc));
 }
 
-async fn breed(s: u8, n: u16) -> Result<usize> {
+async fn breed(s: u8, n: u16) -> usize {
     let mut input = vec![s];
 
     for i in 1..=n {
@@ -42,6 +46,6 @@ async fn breed(s: u8, n: u16) -> Result<usize> {
         //println!("{:>5}: input {:?}", i, input);
         println!("{}", i);
     }
-    //println!("Len: {}", input.len());
-    Ok(input.len())
+    println!("Len: {}", input.len());
+    input.len()
 }
