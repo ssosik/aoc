@@ -6,8 +6,8 @@ use std::io::{BufRead, BufReader};
 type Result<T> = std::result::Result<T, Box<dyn error::Error>>;
 
 fn main() -> Result<()> {
-    //let mut grid = Array2D::filled_with(0, 1000, 1000);
-    let mut grid = Array2D::filled_with(0, 10, 10);
+    let mut grid = Array2D::filled_with(0, 1000, 1000);
+    //let mut grid = Array2D::filled_with(0, 10, 10);
 
     let input = BufReader::new(std::io::stdin());
     for line in input.lines() {
@@ -46,7 +46,7 @@ fn main() -> Result<()> {
             }
         //} else {
         } else if y1 == y2 {
-            if x1 < 2 {
+            if x1 < x2 {
                 for x in x1..=x2 {
                     grid.get_mut(y1, x).map(|n| *n += 1);
                 }
@@ -61,9 +61,7 @@ fn main() -> Result<()> {
         };
     }
     let mut cnt = 0;
-    //println!("Grid: {:?}", grid);
     for row in grid.rows_iter() {
-        //println!("{:?}", row.into_iter().collect::<Vec<usize>>());
         for item in row {
             if item == &0 {
                 print!(".");
