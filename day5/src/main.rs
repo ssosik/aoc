@@ -35,25 +35,20 @@ fn main() -> Result<()> {
         };
         println!("x1:{} y1:{} x2:{} y2:{}", x1, y1, x2, y2);
         if x1 == x2 {
-            if y1 < y2 {
-                for y in y1..=y2 {
-                    grid.get_mut(y, x1).map(|n| *n += 1);
-                }
-            } else {
-                for y in y2..=y1 {
-                    grid.get_mut(y, x1).map(|n| *n += 1);
-                }
+            let (y1, y2) = match y1 < y2 {
+                true => (y1, y2),
+                false => (y2, y1),
+            };
+            for y in y1..=y2 {
+                grid.get_mut(y, x1).map(|n| *n += 1);
             }
-        //} else {
         } else if y1 == y2 {
-            if x1 < x2 {
-                for x in x1..=x2 {
-                    grid.get_mut(y1, x).map(|n| *n += 1);
-                }
-            } else {
-                for x in x2..=x1 {
-                    grid.get_mut(y1, x).map(|n| *n += 1);
-                }
+            let (x1, x2) = match x1 < x2 {
+                true => (x1, x2),
+                false => (x2, x1),
+            };
+            for x in x1..=x2 {
+                grid.get_mut(y1, x).map(|n| *n += 1);
             }
         } else {
             println!("Diagonal {} {} {} {}", x1, y1, x2, y2);
@@ -72,7 +67,7 @@ fn main() -> Result<()> {
                 cnt += 1;
             }
         }
-        println!("");
+        println!();
     }
     let overlap_cnt: usize = grid
         .as_row_major()
