@@ -4,6 +4,19 @@ use std::io::{BufRead, BufReader};
 use std::num::ParseIntError;
 use std::str::FromStr;
 
+// cat <<EOF | cargo run
+// be cfbegad cbdgef fgaecd cgeb fdcge agebfd fecdb fabcd edb | fdgacbe cefdb cefbgd gcbe
+// edbfga begcd cbg gc gcadebf fbgde acbgfd abcde gfcbed gfec | fcgedb cgb dgebacf gc
+// fgaebd cg bdaec gdafb agbcfd gdcbef bgcad gfac gcb cdgabef | cg cg fdcagb cbg
+// fbegcd cbd adcefb dageb afcb bc aefdc ecdab fgdeca fcdbega | efabcd cedba gadfec cb
+// aecbfdg fbg gf bafeg dbefa fcge gcbea fcaegb dgceab fcbdga | gecf egdcabf bgf bfgea
+// fgeab ca afcebg bdacfeg cfaedg gcfdb baec bfadeg bafgc acf | gebdcfa ecba ca fadegcb
+// dbcfg fgd bdegcaf fgec aegbdf ecdfab fbedc dacgb gdcebf gf | cefg dcbef fcge gbcadfe
+// bdfegc cbegaf gecbf dfcage bdacg ed bedf ced adcbefg gebcd | ed bcgafe cdgba cbgef
+// egadfb cdbfeg cegd fecab cgb gbdefca cg fgcdab egfdb bfceg | gbdfcae bgc cg cgb
+// gcafb gcf dcaebfg ecagb gf abcdeg gaef cafbge fdbac fegbdc | fgae cfgab fg bagce
+// EOF
+
 #[derive(Debug, Clone)]
 struct ParseError;
 
@@ -94,25 +107,18 @@ impl SevenSegDisp {
         for c in val.chars().collect::<Vec<char>>() {
             if c == self.top.unwrap() {
                 tmp.top = Some('_');
-                //println!("{} is top", c);
             } else if c == self.upper_left.unwrap() {
                 tmp.upper_left = Some('_');
-                //println!("{} is upper_left", c);
             } else if c == self.upper_right.unwrap() {
                 tmp.upper_right = Some('_');
-                //println!("{} is upper_right", c);
             } else if c == self.middle.unwrap() {
                 tmp.middle = Some('_');
-                //println!("{} is middle", c);
             } else if c == self.lower_left.unwrap() {
                 tmp.lower_left = Some('_');
-                //println!("{} is lower_left", c);
             } else if c == self.lower_right.unwrap() {
                 tmp.lower_right = Some('_');
-                //println!("{} is lower_right", c);
             } else if c == self.bottom.unwrap() {
                 tmp.bottom = Some('_');
-                //println!("{} is bottom", c);
             } else {
                 unreachable!();
             }
@@ -227,25 +233,39 @@ impl SevenSegDisp {
 }
 
 fn main() {
-    let input = BufReader::new(std::io::stdin());
-    let mut sum = 0;
-    for line in input.lines() {
-        let mut num = "".to_string();
-        match line.unwrap().split(" | ").collect::<Vec<&str>>()[..] {
-            [all, out] => {
-                let seg = SevenSegDisp::from_str(all).expect("Failed to parse!");
-                let _ = out
-                    .to_string()
-                    .split_whitespace()
-                    .map(|n| {
-                        let n = n.parse::<String>().unwrap();
-                        num.push_str(&seg.parse(n).expect("failed to parse").to_string());
-                    })
-                    .collect::<Vec<_>>();
+    // Read lines like:
+    //   be cfbegad cbdgef fgaecd cgeb fdcge agebfd fecdb fabcd edb | fdgacbe cefdb cefbgd gcbe
+    let sum: usize = BufReader::new(std::io::stdin())
+        .lines()
+        .map(|line| {
+            // Split each line on '|' character, passing the two pieces into the match
+            match line.unwrap().split(" | ").collect::<Vec<&str>>()[..] {
+                [scrambled_digits, to_parse] => {
+                    // Process the 10 scrambled digits to decode the wiring
+                    let segment =
+                        SevenSegDisp::from_str(scrambled_digits).expect("Failed to parse!");
+                    // Run the 4 digits through the display to decode them
+                    to_parse
+                        .to_string()
+                        .split_whitespace()
+                        .map(|n| {
+                            segment
+                                .parse(n.to_string())
+                                .expect("failed to parse")
+                                .to_string()
+                        })
+                        .collect::<Vec<_>>()
+                        // Return the string-concatenated representation of the 4 digits, i.e.
+                        // "1234"
+                        .join("")
+                }
+                _ => unreachable!(),
             }
-            _ => unreachable!(),
-        }
-        sum += num.parse::<usize>().unwrap();
-    }
-    println!("{}", sum);
+            // Parse the string-representation of the digits as a number, i.e. "1234" -> 1234
+            .parse::<usize>()
+            .unwrap()
+        })
+        // Sum all the numbers
+        .sum();
+    println!("{:?} == 996280", sum);
 }
