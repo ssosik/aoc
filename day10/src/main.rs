@@ -35,6 +35,7 @@ fn main() {
         }
     }
     println!("Corrupted Sum {}", corrupted_sum);
+    let mut completed_sums: Vec<usize> = Vec::new();
     for line in valid_lines {
         let mut completed_sum: usize = 0;
         for char in line.iter().rev() {
@@ -42,7 +43,11 @@ fn main() {
             completed_sum += point_values[char];
             print!("{}", char);
         }
+        completed_sums.push(completed_sum);
         println!();
         println!("Completed Sum {}", completed_sum);
     }
+    completed_sums.sort_unstable();
+    let answer = completed_sums[(completed_sums.len() / 2)];
+    println!("Answer {}", answer);
 }
