@@ -7,26 +7,30 @@ use std::io::{BufRead, BufReader};
 type MyResult<T> = std::result::Result<T, Box<dyn error::Error>>;
 
 #[derive(Debug, Clone)]
-struct Grid(Array2D<usize>);
+struct Grid{
+    grid: Array2D<usize>,
+    flash_cnt: usize,
+}
 
 impl Grid {
     fn row_max(&self) -> usize {
-        self.0.num_rows() as usize - 1
+        self.grid.num_rows() as usize - 1
     }
 
     fn col_max(&self) -> usize {
-        self.0.num_columns() as usize - 1
+        self.grid.num_columns() as usize - 1
     }
 
     fn get(&self, r: usize, c: usize) -> usize {
-        *self.0.get(r, c).unwrap()
+        *self.grid.get(r, c).unwrap()
     }
 
     fn propagate_flash(&mut self, r: usize, c: usize) {
-        if self.0.get(r, c).unwrap() > &9 {
-            *self.0.get_mut(r, c).unwrap() = 0;
+        if self.grid.get(r, c).unwrap() > &9 {
+            self.flash_cnt += 1;
+            *self.grid.get_mut(r, c).unwrap() = 0;
             for nbr in self.get_neighbors(r, c).unwrap() {
-                if let Some(x) = self.0.get_mut(nbr.0, nbr.1) {
+                if let Some(x) = self.grid.get_mut(nbr.0, nbr.1) {
                     if *x == 0 {
                         // This node coordinate has already been processed
                         continue;
@@ -126,7 +130,7 @@ impl Grid {
 
 impl fmt::Display for Grid {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        for row in self.0.rows_iter() {
+        for row in self.grid.rows_iter() {
             for item in row {
                 write!(f, "{}", item)?;
             }
@@ -138,7 +142,8 @@ impl fmt::Display for Grid {
 
 fn main() {
     // Load the initial input
-    let mut grid = Grid(Array2D::from_rows(
+    let mut grid = Grid{
+        grid:  Array2D::from_rows(
         &BufReader::new(std::io::stdin())
             .lines()
             .map(|line| {
@@ -149,17 +154,17 @@ fn main() {
                     .collect::<Vec<_>>()
             })
             .collect::<Vec<_>>(),
-    ));
+    ), flash_cnt: 0};
 
     let row_max = grid.row_max() as usize;
     let col_max = grid.col_max() as usize;
     println!("Before any steps:\n{}", grid);
 
-    for step in 0..2 {
+    for step in 0..100 {
         // Perform a step increment
         for row in 0..=row_max {
             for col in 0..=col_max {
-                if let Some(x) = grid.0.get_mut(row, col) {
+                if let Some(x) = grid.grid.get_mut(row, col) {
                     *x += 1
                 }
             }
@@ -174,6 +179,6 @@ fn main() {
             }
         }
 
-        println!("Step {} grid:\n{}", step + 1, grid);
+        println!("Step {} grid; flash count {}\n{}", step + 1, grid.flash_cnt, grid);
     }
 }
