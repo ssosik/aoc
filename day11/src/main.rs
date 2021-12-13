@@ -160,7 +160,7 @@ fn main() {
     let col_max = grid.col_max() as usize;
     println!("Before any steps:\n{}", grid);
 
-    for step in 0..100 {
+    for step in 0..400 {
         // Perform a step increment
         for row in 0..=row_max {
             for col in 0..=col_max {
@@ -180,5 +180,8 @@ fn main() {
         }
 
         println!("Step {} grid; flash count {}\n{}", step + 1, grid.flash_cnt, grid);
+        if grid.grid.as_row_major().iter().all(|x| x == &0) {
+            break
+        };
     }
 }
