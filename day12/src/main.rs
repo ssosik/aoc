@@ -11,21 +11,40 @@ impl Paths {
     fn walk(
         &mut self,
         curr: String,
+        revisit_allowed: &str,
         nodes: BTreeMap<String, BTreeSet<String>>,
         mut seen: Vec<String>,
     ) -> usize {
+        let mut can_revisit = curr != "start".to_string() && curr != "end".to_string();
+        let is_revisit = curr.chars().all(char::is_lowercase) && seen.contains(&curr);
+        //println!("is revisit {} curr {} revisit_allowed {}", is_revisit, curr, revisit_allowed);
+        if is_revisit {
+            if curr == revisit_allowed {
+                let times_seen = seen
+                    .iter()
+                    .filter(|x| *x == revisit_allowed)
+                    .collect::<Vec<_>>()
+                    .len();
+                //println!("Times Seen {} {}", revisit_allowed, times_seen);
+                can_revisit = times_seen < 2;
+            } else {
+                can_revisit = false;
+            }
+        }
+
         if curr == "end" {
             seen.push(curr);
-            println!("Found end {:?}", seen);
+            //println!("Found end {:?}", seen);
             self.0.insert(seen);
             1
-        } else if curr.chars().all(char::is_lowercase) && seen.contains(&curr) {
-            //println!("Found double visit for {} in {:?}", curr, seen);
+        } else if is_revisit && !can_revisit {
+            //println!("XXXXXX");
             0
         } else {
             seen.push(curr.clone());
+            //println!("else curr {:?}", seen);
             nodes.get(&curr).unwrap().iter().fold(0, |acc, next| {
-                acc + self.walk(next.clone(), nodes.clone(), seen.clone())
+                acc + self.walk(next.clone(), revisit_allowed, nodes.clone(), seen.clone())
             })
         }
     }
@@ -56,6 +75,13 @@ fn main() {
     }
     println!("{:?}", nodes.clone());
     let mut paths = Paths::new();
-    paths.walk("start".to_string(), nodes.clone(), Vec::new());
+    for revisit in nodes
+        .keys()
+        .filter(|x| x.chars().all(char::is_lowercase) && x != &&"start".to_string())
+        .collect::<Vec<_>>()
+    {
+        println!("Testing with revisit of {}", revisit);
+        paths.walk("start".to_string(), revisit, nodes.clone(), Vec::new());
+    }
     println!("Result {:?}", paths.0.len());
 }
