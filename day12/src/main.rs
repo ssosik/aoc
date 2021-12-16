@@ -15,7 +15,7 @@ impl Paths {
         nodes: BTreeMap<String, BTreeSet<String>>,
         mut seen: Vec<String>,
     ) -> usize {
-        let mut can_revisit = curr != "start".to_string() && curr != "end".to_string();
+        let mut can_revisit = curr != *"start" && curr != *"end";
         let is_revisit = curr.chars().all(char::is_lowercase) && seen.contains(&curr);
         //println!("is revisit {} curr {} revisit_allowed {}", is_revisit, curr, revisit_allowed);
         if is_revisit {
@@ -23,8 +23,7 @@ impl Paths {
                 let times_seen = seen
                     .iter()
                     .filter(|x| *x == revisit_allowed)
-                    .collect::<Vec<_>>()
-                    .len();
+                    .count();
                 //println!("Times Seen {} {}", revisit_allowed, times_seen);
                 can_revisit = times_seen < 2;
             } else {
@@ -77,7 +76,11 @@ fn main() {
     let mut paths = Paths::new();
     for revisit in nodes
         .keys()
-        .filter(|x| x.chars().all(char::is_lowercase) && x != &&"start".to_string())
+        .filter(|x| {
+            x.chars().all(char::is_lowercase)
+                && x != &&"start".to_string()
+                && x != &&"end".to_string()
+        })
         .collect::<Vec<_>>()
     {
         println!("Testing with revisit of {}", revisit);
