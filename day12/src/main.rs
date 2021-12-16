@@ -52,7 +52,7 @@ impl Paths {
 fn main() {
     let mut nodes: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
     for (a, b) in BufReader::new(std::io::stdin()).lines().map(|line| {
-        // Split each line on '|' character, passing the two pieces into the match
+        // Split each line on '-' character, passing the two pieces into the match
         match line.unwrap().split('-').collect::<Vec<&str>>()[..] {
             [a, b] => (a.to_string(), b.to_string()),
             _ => unreachable!(),
