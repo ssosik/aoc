@@ -16,38 +16,32 @@ impl Grid {
         Grid(Array2D::filled_with(false, rows, cols))
     }
     fn fold(&self, fold: Fold) -> Grid {
-        let grid = match fold {
-            Fold::Horizontal(n) => {
-                //Grid(Array2D::filled_with(false, n, self.0.num_columns()));
-                //let rows = &self.0.as_rows()[0..n];
-                let mut grid = Grid(Array2D::from_rows(&self.0.as_rows()[0..n]));
-                //let mut rem_rows = &self.0.as_rows().clone()[n..];
-                //rem_rows.reverse();
-                for row in self.0.as_rows().clone()[n..].iter().rev() {
-                    println!("reverse row {:?}", row);
-                }
-                //let rows = &self.0.as_rows()[0..n].iter().zip(self.0.as_rows().clone()[n..].iter().rev());
-                //for row in self.0.as_rows()[0..n]
-                //    .iter()
-                //    .zip(self.0.as_rows().clone()[n..].iter().rev())
-                //{
-                //    println!("zipped row {:?}", row);
-                //}
-                let rows = &self.0.as_rows()[0..n]
+        match fold {
+            Fold::Horizontal(n) => Grid(Array2D::from_rows(
+                &self.0.as_rows()[0..n]
                     .iter()
-                    .zip(self.0.as_rows().clone()[n..].iter().rev())
-                    .map(|(a, b)| a.iter().zip(b).map(|(x, y)| *x || *y).collect::<Vec<bool>>())
-                    .collect::<Vec<Vec<bool>>>();
-                println!("zipped rows {:?}", rows);
-                grid
-            }
-            Fold::Vertical(n) => Grid(Array2D::filled_with(false, self.0.num_rows(), n)),
-        };
-        println!("Folded grid {}", grid);
-        grid
-    }
-    fn get(&self, r: usize, c: usize) -> bool {
-        *self.0.get(r, c).unwrap()
+                    .zip(self.0.as_rows()[n..].iter().rev())
+                    .map(|(a, b)| {
+                        a.iter()
+                            .zip(b)
+                            .map(|(x, y)| *x || *y)
+                            .collect::<Vec<bool>>()
+                    })
+                    .collect::<Vec<Vec<bool>>>(),
+            )),
+            Fold::Vertical(n) => Grid(Array2D::from_columns(
+                &self.0.as_columns()[0..n]
+                    .iter()
+                    .zip(self.0.as_columns()[n..].iter().rev())
+                    .map(|(a, b)| {
+                        a.iter()
+                            .zip(b)
+                            .map(|(x, y)| *x || *y)
+                            .collect::<Vec<bool>>()
+                    })
+                    .collect::<Vec<Vec<bool>>>(),
+            )),
+        }
     }
     fn set(&mut self, r: usize, c: usize, v: bool) -> Result<(), array2d::Error> {
         self.0.set(r, c, v)
@@ -140,9 +134,7 @@ fn main() {
         .collect();
     for fold in folds {
         println!("fold {}", fold);
-
-        let mut grid = grid.fold(fold);
-
-        break;
+        grid = grid.fold(fold);
+        println!("grid {}", grid);
     }
 }
