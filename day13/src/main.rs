@@ -1,12 +1,10 @@
 #![feature(iter_map_while)]
 
 use array2d::Array2D;
+use itertools::{EitherOrBoth::*, Itertools};
 use std::cmp;
-use std::error;
 use std::fmt;
 use std::io::{BufRead, BufReader};
-
-type MyResult<T> = std::result::Result<T, Box<dyn error::Error>>;
 
 #[derive(Debug, Clone)]
 struct Grid(Array2D<bool>);
@@ -16,31 +14,38 @@ impl Grid {
         Grid(Array2D::filled_with(false, rows, cols))
     }
     fn fold(&self, fold: Fold) -> Grid {
+        let (get_slices, n) = match fold {
+            Fold::Horizontal(n) => (self.0.as_rows(), n),
+            Fold::Vertical(n) => (self.0.as_columns(), n),
+        };
+        // Zip the REVERSED first half, up to Row N....
+        let slices = &get_slices[..n]
+            .iter()
+            .rev() // Reverse this list so that the fold lines up exactly with the second half
+            // ... with the second half, from Row N+1 to the end
+            .zip_longest(get_slices[n + 1..].iter())
+            // Handle different lengths of the halves
+            .map(|slices| match slices {
+                // Both iterators have a slice, zip the slice items together
+                Both(l, r) => l
+                    .iter()
+                    .zip(r)
+                    // Merge the two items together, boolean OR.
+                    .map(|(a, b)| *a || *b)
+                    .collect::<Vec<bool>>(),
+                // The second half iterator has no more slices, take
+                // the remaining slices from the first half
+                Left(l) => l.to_vec(),
+                // Don't need to handle when the second half folds
+                // beyond the first half
+                Right(_) => unreachable!(),
+            })
+            // Re-Reverse the zipped grid to put the slices back into original order
+            .rev()
+            .collect::<Vec<Vec<bool>>>();
         match fold {
-            Fold::Horizontal(n) => Grid(Array2D::from_rows(
-                &self.0.as_rows()[0..n]
-                    .iter()
-                    .zip(self.0.as_rows()[n..].iter().rev())
-                    .map(|(a, b)| {
-                        a.iter()
-                            .zip(b)
-                            .map(|(x, y)| *x || *y)
-                            .collect::<Vec<bool>>()
-                    })
-                    .collect::<Vec<Vec<bool>>>(),
-            )),
-            Fold::Vertical(n) => Grid(Array2D::from_columns(
-                &self.0.as_columns()[0..n]
-                    .iter()
-                    .zip(self.0.as_columns()[n..].iter().rev())
-                    .map(|(a, b)| {
-                        a.iter()
-                            .zip(b)
-                            .map(|(x, y)| *x || *y)
-                            .collect::<Vec<bool>>()
-                    })
-                    .collect::<Vec<Vec<bool>>>(),
-            )),
+            Fold::Horizontal(_) => Grid(Array2D::from_rows(slices)),
+            Fold::Vertical(_) => Grid(Array2D::from_columns(slices)),
         }
     }
     fn set(&mut self, r: usize, c: usize, v: bool) -> Result<(), array2d::Error> {
@@ -68,7 +73,6 @@ enum Fold {
 }
 use std::str::FromStr;
 impl FromStr for Fold {
-    //type Err = Box<dyn std::error::Error>;
     type Err = &'static str;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
@@ -87,7 +91,6 @@ impl FromStr for Fold {
             }
         }
         Err("Nope")
-        //unreachable!("Should not be here {}", s)
     }
 }
 impl fmt::Display for Fold {
@@ -115,26 +118,28 @@ fn main() {
         })
         .collect();
 
-    // Build the grid
+    // Find the maximum row and columns
     let (max_cols, max_rows) = pairs
         .iter()
         .fold((0, 0), |(x, y), (a, b)| (cmp::max(x, *a), cmp::max(y, *b)));
-    println!("pairs {:?}", pairs);
-    println!("Max Columns {} Max Rows {}", max_cols, max_rows);
-    let mut grid = Grid::new(max_rows + 1, max_cols + 1);
+    let (max_cols, max_rows) = (max_cols + 1, max_rows + 1);
+    // Build the grid
+    let mut grid = Grid::new(max_rows, max_cols);
     for pair in pairs {
         grid.set(pair.1, pair.0, true).unwrap();
     }
-    println!("grid {}", grid);
+    //println!("grid {}", grid);
 
-    // Parse the folds
-    let folds: Vec<Fold> = lines
+    // Parse and process the folds
+    for fold in lines
         .iter()
         .filter_map(|x| x.as_ref().unwrap().parse().ok())
-        .collect();
-    for fold in folds {
+        .collect::<Vec<Fold>>()
+    {
         println!("fold {}", fold);
         grid = grid.fold(fold);
         println!("grid {}", grid);
+        //let num = grid.0.elements_row_major_iter().filter(|&x| *x).count();
+        //println!("num {}", num);
     }
 }
