@@ -37,7 +37,7 @@ impl Instructions {
 fn main() {
     let lines: Vec<_> = BufReader::new(std::io::stdin()).lines().collect();
 
-    let mut input = lines
+    let input = lines
         .get(0)
         .unwrap()
         .as_ref()
