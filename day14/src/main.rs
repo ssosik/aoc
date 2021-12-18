@@ -6,7 +6,6 @@ use std::io::{BufRead, BufReader};
 use std::str::FromStr;
 
 fn main() {
-    println!("Hello, world!");
     let lines: Vec<_> = BufReader::new(std::io::stdin()).lines().collect();
 
     let mut template = lines.get(0)
@@ -15,7 +14,7 @@ fn main() {
         .unwrap()
         .chars()
         .collect::<Vec<_>>();
-    println!("Template {:?}", template);
+    //println!("Template {:?}", template);
 
     // Load the initial coordinate inputs
     let mut instructions: BTreeMap<(char, char), char> = BTreeMap::new();
@@ -33,9 +32,9 @@ fn main() {
             _ => unreachable!("EEk {:?}", line),
         }
     }
-    println!("Instructions {:?}", instructions);
+    //println!("Instructions {:?}", instructions);
 
-    for _ in 0..10 {
+    for i in 0..40 {
         let mut tmp = Vec::new();
         let mut last: char = 'X';
         for tuple in template
@@ -44,16 +43,18 @@ fn main() {
             .collect::<Vec<_>>()
         {
             let tuple = (*tuple.0, *tuple.1);
-            println!("Tuple {:?} {:?}", tuple, instructions.get(&tuple));
+            //println!("Tuple {:?} {:?}", tuple, instructions.get(&tuple));
             tmp.push(tuple.0);
             if let Some(c) = instructions.get(&tuple) {
                 tmp.push(*c);
             }
             last = tuple.1;
+            //print!(".");
         }
         tmp.push(last);
         template = tmp;
-        println!("Template {:?}", template);
+        //println!("Template {:?}", template);
+        println!("Loop {}", i);
     }
 
     let mut counts: BTreeMap<char, usize> = BTreeMap::new();
