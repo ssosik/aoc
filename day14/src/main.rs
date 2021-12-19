@@ -15,7 +15,7 @@ impl Instructions {
         ret
     }
     fn _recurse(&self, depth: u8, left: char, right: char) -> Vec<char> {
-        //println!("Here {} left {} right {}", depth, left, right);
+        println!("Here {} left {} right {}", depth, left, right);
         let mut ret = Vec::new();
         if depth >= self.0 {
             return vec![right];
