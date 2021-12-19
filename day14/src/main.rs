@@ -4,13 +4,14 @@ use std::fmt;
 use std::io::{BufRead, BufReader};
 use std::str::FromStr;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 struct Instructions {
     depth: u8,
     instructions: BTreeMap<(char, char), char>,
     counts: BTreeMap<char, usize>,
 }
 
+#[derive(Clone, Copy)]
 enum Instruction {
     Counted(char),
     Uncounted(char),
@@ -28,7 +29,7 @@ impl fmt::Display for Instruction {
 impl Instructions {
     fn new(depth: u8) -> Instructions {
         Instructions {
-            depth: depth,
+            depth,
             instructions: BTreeMap::new(),
             counts: BTreeMap::new(),
         }
@@ -49,28 +50,30 @@ impl Instructions {
     }
     fn count(&mut self, c: Instruction) -> Instruction {
         match c {
-            Instruction::Counted(x) => c,
+            Instruction::Counted(_) => c,
             Instruction::Uncounted(x) => {
                 self.counts.entry(x).and_modify(|x| *x += 1).or_insert(1);
                 Instruction::Counted(x)
             }
         }
     }
-    fn recurse(&self, left: char, right: char) {
+    fn recurse(&mut self, left: char, right: char) {
         self._recurse(
             0,
             Instruction::Uncounted(left),
             Instruction::Uncounted(right),
         )
     }
-    fn _recurse(&self, depth: u8, left: Instruction, right: Instruction) {
+    fn _recurse(&mut self, depth: u8, left: Instruction, right: Instruction) {
         println!("Here {} left {} right {}", depth, left, right);
         if depth < self.depth {
             let left = self.count(left);
             let right = self.count(right);
             if let Some(val) = self.get(left, right) {
-                self._recurse(depth + 1, left, Instruction::Uncounted(*val));
-                self._recurse(depth + 1, Instruction::Uncounted(*val), right);
+                self._recurse(depth + 1, left, Instruction::Uncounted(val.clone()));
+            }
+            if let Some(val) = self.get(left, right) {
+                self._recurse(depth + 1, Instruction::Uncounted(val.clone()), right);
             }
         }
     }
