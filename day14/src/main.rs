@@ -8,7 +8,7 @@ use std::str::FromStr;
 struct Instructions {
     depth: u8,
     instructions: BTreeMap<(char, char), char>,
-    counts: BTreeMap<char, usize>,
+    //counts: BTreeMap<char, usize>,
 }
 
 #[derive(Clone, Copy)]
@@ -22,8 +22,7 @@ impl fmt::Display for Instruction {
         match self {
             Instruction::Counted(c) => write!(f, "Counted {}", c),
             Instruction::Uncounted(c) => write!(f, "Uncounted {}", c),
-        };
-        Ok(())
+        }
     }
 }
 impl Instructions {
@@ -31,7 +30,7 @@ impl Instructions {
         Instructions {
             depth,
             instructions: BTreeMap::new(),
-            counts: BTreeMap::new(),
+            //counts: BTreeMap::new(),
         }
     }
     fn insert(&mut self, left: char, right: char, insert: char) {
@@ -46,36 +45,53 @@ impl Instructions {
             Instruction::Counted(x) => x,
             Instruction::Uncounted(x) => x,
         };
-        self.instructions.get(&(left, right))
+        self.instructions.get(&(left, right)).clone()
     }
-    fn count(&mut self, c: Instruction) -> Instruction {
-        match c {
-            Instruction::Counted(_) => c,
-            Instruction::Uncounted(x) => {
-                self.counts.entry(x).and_modify(|x| *x += 1).or_insert(1);
-                Instruction::Counted(x)
-            }
-        }
-    }
-    fn recurse(&mut self, left: char, right: char) {
+    //fn count(self, c: Instruction) -> Instruction {
+    //    match c {
+    //        Instruction::Counted(_) => c,
+    //        Instruction::Uncounted(x) => {
+    //            self.counts.entry(x).and_modify(|x| *x += 1).or_insert(1);
+    //            Instruction::Counted(x)
+    //        }
+    //    }
+    //}
+    fn recurse(&mut self, left: char, right: char) -> BTreeMap<char, usize> {
         self._recurse(
             0,
+            BTreeMap::new(),
             Instruction::Uncounted(left),
             Instruction::Uncounted(right),
         )
     }
-    fn _recurse(&mut self, depth: u8, left: Instruction, right: Instruction) {
+    fn _recurse(&self, depth: u8, mut counts: BTreeMap<char, usize>, left: Instruction, right: Instruction) -> BTreeMap<char, usize> {
         println!("Here {} left {} right {}", depth, left, right);
         if depth < self.depth {
-            let left = self.count(left);
-            let right = self.count(right);
+            let left = match left {
+                Instruction::Counted(_) => left,
+                Instruction::Uncounted(x) => {
+                    counts.entry(x).and_modify(|x| *x += 1).or_insert(1);
+                    Instruction::Counted(x)
+                }
+            };
+            let right = match right {
+                Instruction::Counted(_) => right,
+                Instruction::Uncounted(x) => {
+                    counts.entry(x).and_modify(|x| *x += 1).or_insert(1);
+                    Instruction::Counted(x)
+                }
+            };
             if let Some(val) = self.get(left, right) {
-                self._recurse(depth + 1, left, Instruction::Uncounted(val.clone()));
-            }
-            if let Some(val) = self.get(left, right) {
-                self._recurse(depth + 1, Instruction::Uncounted(val.clone()), right);
+                for (key, val) in self._recurse(depth + 1, counts.clone(), left, Instruction::Uncounted((*val).clone())) {
+                    counts.entry(key).and_modify(|x| *x += val).or_insert(val);
+                }
+                for (key, val) in self._recurse(depth + 1, counts.clone(), Instruction::Uncounted(*val), right) {
+                    println!("KEY {} Valu {}", key, val);
+                    counts.entry(key).and_modify(|x| *x += val).or_insert(val);
+                }
             }
         }
+        counts
     }
 }
 
@@ -112,12 +128,13 @@ fn main() {
     //let ret = instructions.recurse(input[0], input[1]);
     //println!("RET {:?}", ret.into_iter().collect::<String>());
 
+    let mut counts = BTreeMap::new();
     for tuple in input.iter().tuple_windows::<(_, _)>().collect::<Vec<_>>() {
         println!("Chunk {}{}", *tuple.0, *tuple.1);
-        instructions.recurse(*tuple.0, *tuple.1);
+        counts = instructions.recurse(*tuple.0, *tuple.1);
     }
 
-    let mut values: Vec<usize> = instructions.counts.into_values().collect();
+    let mut values: Vec<usize> = counts.into_values().collect();
     values.sort_unstable();
     println!(
         "Values: {:?} min {} max {}",
