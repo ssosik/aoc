@@ -45,7 +45,7 @@ impl Instructions {
             Instruction::Counted(x) => x,
             Instruction::Uncounted(x) => x,
         };
-        self.instructions.get(&(left, right)).clone()
+        self.instructions.get(&(left, right))
     }
     //fn count(self, c: Instruction) -> Instruction {
     //    match c {
@@ -64,7 +64,13 @@ impl Instructions {
             Instruction::Uncounted(right),
         )
     }
-    fn _recurse(&self, depth: u8, mut counts: BTreeMap<char, usize>, left: Instruction, right: Instruction) -> BTreeMap<char, usize> {
+    fn _recurse(
+        &self,
+        depth: u8,
+        mut counts: BTreeMap<char, usize>,
+        left: Instruction,
+        right: Instruction,
+    ) -> BTreeMap<char, usize> {
         println!("Here {} left {} right {}", depth, left, right);
         if depth < self.depth {
             let left = match left {
@@ -82,10 +88,20 @@ impl Instructions {
                 }
             };
             if let Some(val) = self.get(left, right) {
-                for (key, val) in self._recurse(depth + 1, counts.clone(), left, Instruction::Uncounted((*val).clone())) {
+                for (key, val) in self._recurse(
+                    depth + 1,
+                    counts.clone(),
+                    left,
+                    Instruction::Uncounted(*val),
+                ) {
                     counts.entry(key).and_modify(|x| *x += val).or_insert(val);
                 }
-                for (key, val) in self._recurse(depth + 1, counts.clone(), Instruction::Uncounted(*val), right) {
+                for (key, val) in self._recurse(
+                    depth + 1,
+                    counts.clone(),
+                    Instruction::Uncounted(*val),
+                    right,
+                ) {
                     println!("KEY {} Valu {}", key, val);
                     counts.entry(key).and_modify(|x| *x += val).or_insert(val);
                 }
