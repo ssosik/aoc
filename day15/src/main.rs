@@ -63,15 +63,26 @@ impl Grid {
 fn main() {
     let lines: Vec<Vec<u32>> = BufReader::new(std::io::stdin())
         .lines()
-        //.map(|l| l.unwrap().chars().map(|c| c.to_digit(10_u32).unwrap()))
+        // Split each line into a Vec of chars
         .map(|l| l.unwrap().chars().collect::<_>())
+        // Convert each char into a digit
         .map(|l: Vec<char>| {
             l.iter()
                 .map(|c| c.to_digit(10_u32).unwrap())
                 .collect::<Vec<u32>>()
         })
-        //.inspect(|x| println!("X {:?}", x))
+        .inspect(|x| println!("X {:?}", x))
         .collect();
+
+    let it = (0..4)
+        .map(|x| {
+            lines
+                .iter()
+                .map(|l| l.iter().map(|i| (i + x) % 10).collect::<Vec<_>>())
+                .collect::<Vec<_>>()
+        })
+        .collect::<Vec<_>>();
+    println!("IT: {:?}", it);
     let grid = Grid::new(&lines);
 
     let start = Pos(0, 0);
