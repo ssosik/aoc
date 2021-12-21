@@ -29,7 +29,7 @@ impl Grid {
         let &Pos(row, col) = p;
         let col_max = self.0.num_columns() - 1;
         let row_max = self.0.num_rows() - 1;
-        println!("HERE {} {}", row, col);
+        //println!("HERE {} {}", row, col);
         match (row, col) {
             // upper left
             (0, 0) => self.neighbors_with_cost(vec![(0, 1), (1, 0)]),
