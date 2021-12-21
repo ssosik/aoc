@@ -1,11 +1,11 @@
 use array2d::Array2D;
 use pathfinding::prelude::{absdiff, astar};
-use std::cmp;
-use std::fmt;
+
+
 use std::io::{BufRead, BufReader};
 
 #[derive(Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
-struct Pos(usize, usize, u32);
+struct Pos(usize, usize);
 
 impl Pos {
     fn distance(&self, other: &Pos) -> u32 {
@@ -17,23 +17,47 @@ impl Pos {
 struct Grid(Array2D<u32>);
 
 impl Grid {
-    fn new(lines: &Vec<Vec<u32>>) -> Grid {
+    fn new(lines: &[Vec<u32>]) -> Grid {
         Grid(Array2D::from_rows(lines))
     }
-    fn neighbors(&self, p: &Pos) -> Vec<(Pos, u32)> {
-            let &Pos(x, y, _) = p;
-            println!("HERE {} {}", x, y);
-            //vec![Pos(x+1,y+2), Pos(x+1,y-2), Pos(x-1,y+2), Pos(x-1,y-2),
-            //     Pos(x+2,y+1), Pos(x+2,y-1), Pos(x-2,y+1), Pos(x-2,y-1)]
-            //     .into_iter().map(|p| (p, 1)).collect()
-            match (x, y) {
-                (0, 0) => println!("upper left"),
-                (0, 1) => println!("upper right"),
-                (1, 0) => println!("lower left"),
-                (1, 1) => println!("lower right"),
-                (a, b) => println!("mid {} {}", a, b),
-            };
-            vec![(Pos(1, 2, 3), 4)]
+    fn neighbors_with_cost(&self, vec: Vec<(usize, usize)>) -> Vec<(Pos, u32)> {
+        vec.iter()
+            .map(|p| (Pos(p.0, p.1), *self.0.get(p.0, p.1).unwrap()))
+            .collect()
+    }
+    fn successors(&self, p: &Pos) -> Vec<(Pos, u32)> {
+        let &Pos(row, col) = p;
+        let col_max = self.0.num_columns() - 1;
+        let row_max = self.0.num_rows() - 1;
+        println!("HERE {} {}", row, col);
+        match (row, col) {
+            // upper left
+            (0, 0) => self.neighbors_with_cost(vec![(0, 1), (1, 0)]),
+            // lower left
+            (r, 0) if r == row_max => self.neighbors_with_cost(vec![(r - 1, 0), (r, 1)]),
+            // down the left side in the middle
+            (r, 0) => self.neighbors_with_cost(vec![(r - 1, 0), (r, 1), (r + 1, 0)]),
+            // upper right
+            (0, c) if c == col_max => self.neighbors_with_cost(vec![(0, c - 1), (1, c)]),
+            // Top row in the middle
+            (0, c) => self.neighbors_with_cost(vec![(0, c - 1), (1, c), (0, c + 1)]),
+            // lower right
+            (r, c) if r == row_max && c == col_max => {
+                self.neighbors_with_cost(vec![(r, c - 1), (r - 1, c)])
+            }
+            // Bottom row in the middle
+            (r, c) if r == row_max => {
+                self.neighbors_with_cost(vec![(r, c - 1), (r - 1, c), (r, c + 1)])
+            }
+            // down the right side in the middle
+            (r, c) if c == col_max => {
+                self.neighbors_with_cost(vec![(r - 1, c), (r, c - 1), (r + 1, c)])
+            }
+            // Somewhere in the middle
+            (r, c) => {
+                self.neighbors_with_cost(vec![(r - 1, c), (r, c - 1), (r, c + 1), (r + 1, c)])
+            }
+        }
     }
 }
 
@@ -53,22 +77,18 @@ fn main() {
     let rows = grid.0.num_rows();
     let columns = grid.0.num_columns();
 
-    let start = Pos(0, 0, *grid.0.get(0, 0).unwrap());
-    let goal: Pos = Pos(
-        rows - 1,
-        columns - 1,
-        *grid.0.get(rows - 1, columns - 1).unwrap(),
-    );
+    let start = Pos(0, 0);
+    let goal: Pos = Pos(rows - 1, columns - 1);
 
     println!("lines: {:?}", lines);
     println!("rows: {} columns {}", rows, columns);
     println!("goal {}", grid.0.get(rows - 1, columns - 1).unwrap());
 
-    let result = astar(&start,
-        |p| grid.neighbors(p),
+    let result = astar(
+        &start,
+        |p| grid.successors(p),
         |p| p.distance(&goal) / 3,
-        |p| *p == goal
-        );
+        |p| *p == goal,
+    );
     println!("result: {:?}", result);
-    
 }
