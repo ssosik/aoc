@@ -1,4 +1,5 @@
 use array2d::Array2D;
+use pathfinding::prelude::*;
 use std::cmp;
 use std::fmt;
 use std::io::{BufRead, BufReader};
@@ -17,7 +18,11 @@ fn main() {
         .lines()
         //.map(|l| l.unwrap().chars().map(|c| c.to_digit(10_u32).unwrap()))
         .map(|l| l.unwrap().chars().collect::<_>())
-        .map(|l: Vec<char>| l.iter().map(|c| c.to_digit(10_u32).unwrap()).collect::<Vec<u32>>())
+        .map(|l: Vec<char>| {
+            l.iter()
+                .map(|c| c.to_digit(10_u32).unwrap())
+                .collect::<Vec<u32>>()
+        })
         .inspect(|x| println!("X {:?}", x))
         .collect();
     let grid = Grid::new(&lines);
@@ -26,4 +31,5 @@ fn main() {
 
     println!("lines: {:?}", lines);
     println!("rows: {} columns {}", rows, columns);
+    println!("goal {}", grid.0.get(rows - 1, columns - 1).unwrap());
 }
