@@ -30,6 +30,16 @@ impl Grid {
             row_max,
         }
     }
+    fn from_columns(lines: &[Vec<u32>]) -> Grid {
+        let grid = Array2D::from_columns(lines);
+        let col_max = grid.num_columns() - 1;
+        let row_max = grid.num_rows() - 1;
+        Grid {
+            grid,
+            col_max,
+            row_max,
+        }
+    }
     fn neighbors_with_cost(&self, vec: Vec<(usize, usize)>) -> Vec<(Pos, u32)> {
         vec.iter()
             .map(|p| (Pos(p.0, p.1), *self.grid.get(p.0, p.1).unwrap()))
@@ -74,6 +84,7 @@ fn main() {
         .inspect(|x| println!("X {:?}", x))
         .collect();
 
+    // Extend each line out 5 times, incrementing each value each time
     let mut extended_lines: Vec<Vec<u32>> = Vec::new();
     for line in lines {
         let mut tmp: Vec<u32> = Vec::new();
@@ -91,39 +102,29 @@ fn main() {
         extended_lines.push(tmp);
     }
 
-    println!("extended_lines:\n{:?}", extended_lines);
-
-    //let shifts = (0..9)
-    //    .map(|x| {
-    //        lines
-    //            .iter()
-    //            .map(|l| l.iter().map(|i| match (i + x) {
-    //                1..=9 => i+x,
-    //                10..=18 => i+x-9,
-    //                19..=27 => i+x-18,
-    //                _ => unreachable!(),
-    //            }).collect::<Vec<_>>())
-    //            .collect::<Vec<_>>()
-    //    })
-    //    .inspect(|z| println!("Z: {:?}", z))
-    //    .collect::<Vec<_>>();
-
-    //println!("IT: {:?}", shifts);
-
-    //let mut tmp: Vec<Vec<u32>> = Vec::new();
-    //for i in 0..5 {
-    //    for j in 0..5 {
-    //    let mut inner: Vec<u32> = Vec::new();
-    //        print!("{} ", j+i);
-    //        for z in 0..i+5 {
-    //            inner.extend(shifts[z][j+i].clone());
-    //        }
-    //    tmp.push(inner);
-    //    }
-    //    println!();
-    //}
-    //println!("COMBINED\n{:?}", tmp);
+    // Create a temporary grid from the extended lines so that we can iterate
+    // over each column to create the extended rows
     let grid = Grid::new(&extended_lines);
+    let mut extended_rows: Vec<Vec<u32>> = Vec::new();
+    for col in grid.grid.columns_iter() {
+        let mut tmp: Vec<u32> = Vec::new();
+        let col = col.into_iter().collect::<Vec<&u32>>();
+        for i in 0..5 {
+            for item in col.clone() {
+                let item = match item + i {
+                    1..=9 => item + i,
+                    10..=18 => item + i - 9,
+                    19..=27 => item + i - 18,
+                    _ => unreachable!(),
+                };
+                tmp.push(item);
+            }
+        }
+        extended_rows.push(tmp);
+    }
+
+    // Create the full size grid
+    let grid = Grid::from_columns(&extended_rows);
 
     let start = Pos(0, 0);
     let goal: Pos = Pos(grid.row_max, grid.col_max);
