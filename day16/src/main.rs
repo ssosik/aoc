@@ -23,5 +23,22 @@ static HEX: phf::Map<char, [u8; 4]> = phf_map! {
 struct packet{}
 
 fn main() {
-    println!("Hello, world!");
+    let binary = BufReader::new(std::io::stdin())
+        .lines()
+        // Take only the one line
+        .take(1)
+        .inspect(|line| println!("Hex Input list {:?}", line))
+        // Convert the line into a Vec of chars
+        .map(|l| l.unwrap().chars().collect::<_>())
+        // Convert each char into its binary representation of 4 bits, flattening
+        // into one continuous list of bits
+        .flat_map(|l: Vec<char>| {
+            l.iter()
+                // Lookup the char in the Hex map, returning the slice of bits
+                .flat_map(|c| HEX.get(c).unwrap())
+                .collect::<Vec<&u8>>()
+        })
+        .collect::<Vec<_>>();
+
+    println!("Binary {:?}", binary);
 }
