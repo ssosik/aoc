@@ -1,3 +1,4 @@
+use anyhow::Result;
 use phf::phf_map;
 use std::io::{BufRead, BufReader};
 
@@ -35,7 +36,7 @@ enum Payload {
 }
 
 impl Packet {
-    fn from(bits: Vec<&u8>) -> (Packet, Vec<u8>) {
+    fn from(bits: Vec<u8>) -> Result<(Packet, Vec<u8>)> {
         println!("FROM {:?}", bits);
         let version = u8::from_str_radix(
             &bits
@@ -45,8 +46,7 @@ impl Packet {
                 .collect::<Vec<_>>()
                 .join(""),
             2,
-        )
-        .unwrap();
+        )?;
         let type_id = u8::from_str_radix(
             &bits
                 .iter()
@@ -56,39 +56,27 @@ impl Packet {
                 .collect::<Vec<_>>()
                 .join(""),
             2,
-        )
-        .unwrap();
-        let rest: Vec<_> = bits.iter().skip(6).map(|x| **x).collect();
-        match type_id {
+        )?;
+        let rest: Vec<_> = bits.iter().skip(6).map(|x| *x).collect();
+        let (payload, rest) = match type_id {
             // Literal type packet
-            4 => {
-                let (payload, rest) = Packet::literal_payload(rest);
-                // Return the packet and unparsed bits
-                (
-                    Packet {
-                        version,
-                        type_id,
-                        payload,
-                    },
-                    rest,
-                )
-            }
+            4 => Packet::literal_payload(rest)?,
             // Operator type packet
-            _ => {
-                let (payload, rest) = Packet::operator_payload(rest);
-                (
-                    Packet {
-                        version,
-                        type_id,
-                        payload,
-                    },
-                    rest,
-                )
-            }
-        }
+            _ => Packet::operator_payload(rest)?,
+        };
+
+        // Return the packet and unparsed bits
+        Ok((
+            Packet {
+                version,
+                type_id,
+                payload,
+            },
+            rest,
+        ))
     }
 
-    fn literal_payload(bits: Vec<u8>) -> (Payload, Vec<u8>) {
+    fn literal_payload(bits: Vec<u8>) -> Result<(Payload, Vec<u8>)> {
         let mut acc: Vec<&u8> = Vec::new();
         let mut idx = 0;
         for sl in bits.chunks(5) {
@@ -102,41 +90,44 @@ impl Packet {
                 _ => unreachable!(),
             }
         }
-        let payload = Payload::Literal(
-            u32::from_str_radix(
-                &acc.iter()
-                    .map(|u| format!("{}", u))
-                    .collect::<Vec<String>>()
-                    .join(""),
-                2,
-            )
-            .unwrap(),
-        );
+        let payload = Payload::Literal(u32::from_str_radix(
+            &acc.iter()
+                .map(|b| b.to_string())
+                .collect::<Vec<String>>()
+                .join(""),
+            2,
+        )?);
         // Return the payload and unparsed bits
-        (payload, bits.iter().skip(idx).copied().collect::<Vec<_>>())
+        Ok((payload, bits.iter().skip(idx).copied().collect::<Vec<_>>()))
     }
 
-    fn operator_payload(bits: Vec<u8>) -> (Payload, Vec<u8>) {
+    fn operator_payload(bits: Vec<u8>) -> Result<(Payload, Vec<u8>)> {
         let rem = match &bits[..] {
             // length type ID is 0, then the next 15 bits are a number that
-            // represents the total length in bits of the sub-packets contained by
-            // this packet.
+            // represents the total length in bits of the sub-packets contained
+            // by this packet.
             [0, rest @ ..] => {
                 let len = usize::from_str_radix(
                     &rest
                         .iter()
                         .take(15)
-                        .map(|u| format!("{}", u))
+                        .map(|b| b.to_string())
                         .collect::<Vec<_>>()
                         .join(""),
                     2,
-                )
-                .unwrap();
+                )?;
                 let rest = rest.iter().skip(15).copied().collect::<Vec<_>>();
                 let to_parse = rest.iter().take(len).collect::<Vec<_>>();
                 let rest = rest.iter().skip(len).copied().collect::<Vec<_>>();
+
                 println!("To Parse {:?}", to_parse);
-                let (_p, _r) = Packet::from(to_parse);
+                let mut looper = to_parse.iter().map(|x| *x.clone()).collect::<Vec<_>>();
+                while let Ok((pkt, leftover)) = Packet::from(looper) {
+                    println!("Inner pkt {:?}", pkt);
+                    println!("Inner leftover {:?}", leftover);
+                    looper = leftover.iter().map(|x| *x).collect::<Vec<_>>();
+                }
+
                 println!("Rest {:?}", rest);
                 rest
             }
@@ -148,18 +139,17 @@ impl Packet {
                     &rest
                         .iter()
                         .take(11)
-                        .map(|u| format!("{}", u))
+                        .map(|b| b.to_string())
                         .collect::<Vec<_>>()
                         .join(""),
                     2,
-                )
-                .unwrap();
+                )?;
                 rest.iter().skip(11).copied().collect::<Vec<_>>()
             }
             _ => unreachable!(),
         };
         // Return the payload and unparsed bits
-        (Payload::Operator, rem)
+        Ok((Payload::Operator, rem))
     }
 }
 
@@ -177,8 +167,8 @@ fn main() {
         .flat_map(|l: Vec<char>| {
             l.iter()
                 // Lookup the char in the Hex map, returning the slice of bits
-                .flat_map(|c| HEX.get(c).unwrap())
-                .collect::<Vec<&u8>>()
+                .flat_map(|c| *HEX.get(c).unwrap())
+                .collect::<Vec<u8>>()
         })
         .collect::<Vec<_>>();
 
