@@ -37,7 +37,6 @@ enum Payload {
 
 impl Packet {
     fn from(bits: Vec<u8>) -> Result<(Packet, Vec<u8>)> {
-        //println!("FROM {:?}", bits);
         let version = u8::from_str_radix(
             &bits
                 .iter()
@@ -101,71 +100,64 @@ impl Packet {
         Ok((payload, bits.iter().skip(idx).copied().collect::<Vec<_>>()))
     }
 
+    fn split_bits(bits: &[u8], idx: usize) -> Result<(Vec<u8>, usize)> {
+        let mut bits = bits.to_vec();
+        Ok((
+            bits.split_off(idx),
+            usize::from_str_radix(
+                &bits
+                    .iter()
+                    .map(|b| b.to_string())
+                    .collect::<Vec<_>>()
+                    .join(""),
+                2,
+            )?,
+        ))
+    }
+
     fn operator_payload(bits: Vec<u8>) -> Result<(Payload, Vec<u8>)> {
         let mut packets: Vec<Packet> = Vec::new();
         let rem = match &bits[..] {
             // length type ID is 0, then the next 15 bits are a number that
             // represents the total length in bits of the sub-packets contained
             // by this packet.
-            [0, rest @ ..] => {
-                let len = usize::from_str_radix(
-                    &rest
-                        .iter()
-                        .take(15)
-                        .map(|b| b.to_string())
-                        .collect::<Vec<_>>()
-                        .join(""),
-                    2,
-                )?;
-                let rest = rest.iter().skip(15).copied().collect::<Vec<_>>();
-                let to_parse = rest.iter().take(len).collect::<Vec<_>>();
-                let rest = rest.iter().skip(len).copied().collect::<Vec<_>>();
-
-                //println!("To Parse {:?}", to_parse);
-                let mut looper = to_parse.iter().map(|x| *(*x)).collect::<Vec<_>>();
-                while let Ok((pkt, leftover)) = Packet::from(looper) {
-                    //println!("Inner pkt {:?}", pkt);
+            [0, bits @ ..] => {
+                let (mut pkt_bits, len) = Packet::split_bits(bits, 15)?;
+                let leftover = pkt_bits.split_off(len);
+                while let Ok((pkt, rem)) = Packet::from(pkt_bits) {
                     packets.push(pkt);
-                    //println!("Inner leftover {:?}", leftover);
-                    looper = leftover.to_vec();
+                    pkt_bits = rem.to_vec();
                 }
-
-                println!("Rest {:?}", rest);
-                rest
+                leftover
             }
             // length type ID is 1, then the next 11 bits are a number that
             // represents the number of sub-packets immediately contained by this
             // packet.
-            [1, rest @ ..] => {
-                let len = u32::from_str_radix(
-                    &rest
-                        .iter()
-                        .take(11)
-                        .map(|b| b.to_string())
-                        .collect::<Vec<_>>()
-                        .join(""),
-                    2,
-                )?;
-                let rest = rest.iter().skip(11).copied().collect::<Vec<_>>();
-                let mut looper = rest.clone();
-                for _ in 0..len {
-                    //println!("TYPE1 Loop {}", i);
-                    if let Ok((pkt, leftover)) = Packet::from(looper.clone()) {
-                        //println!("Inner pkt {:?}", pkt);
+            [1, bits @ ..] => {
+                let (mut pkt_bits, pkt_cnt) = Packet::split_bits(bits, 11)?;
+                for _ in 0..pkt_cnt {
+                    if let Ok((pkt, leftover)) = Packet::from(pkt_bits) {
                         packets.push(pkt);
-                        //println!("Inner leftover {:?}", leftover);
-                        looper = leftover.to_vec();
+                        pkt_bits = leftover.to_vec();
                     } else {
                         unreachable!("Not OK");
                     }
                 }
-
-                looper
+                pkt_bits
             }
             _ => unreachable!(),
         };
         // Return the payload and unparsed bits
         Ok((Payload::Operator(packets), rem))
+    }
+
+    fn sum_versions(&self) -> usize {
+        match &self.payload {
+            Payload::Literal(_) => self.version as usize,
+            Payload::Operator(pkts) => {
+                pkts.iter().map(|p| p.sum_versions()).sum::<usize>() + self.version as usize
+            }
+        }
     }
 }
 
@@ -189,6 +181,8 @@ fn main() {
         .collect::<Vec<_>>();
 
     println!("Binary {:?}", binary);
-    let pkt = Packet::from(binary);
+    let (pkt, _rest) = Packet::from(binary).unwrap();
     println!("{:?}", pkt);
+    let sum = pkt.sum_versions();
+    println!("Sum {}", sum);
 }
