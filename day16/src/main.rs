@@ -31,7 +31,7 @@ struct Packet {
 
 #[derive(Debug)]
 enum Payload {
-    Literal(u32),
+    Literal(usize),
     Operator(Vec<Packet>),
 }
 
@@ -89,7 +89,7 @@ impl Packet {
                 _ => unreachable!(),
             }
         }
-        let payload = Payload::Literal(u32::from_str_radix(
+        let payload = Payload::Literal(usize::from_str_radix(
             &acc.iter()
                 .map(|b| b.to_string())
                 .collect::<Vec<String>>()
@@ -135,12 +135,12 @@ impl Packet {
             // packet.
             [1, bits @ ..] => {
                 let (mut pkt_bits, pkt_cnt) = Packet::split_bits(bits, 11)?;
-                for _ in 0..pkt_cnt {
+                for _ in 1..=pkt_cnt {
                     if let Ok((pkt, leftover)) = Packet::from(pkt_bits) {
                         packets.push(pkt);
                         pkt_bits = leftover.to_vec();
                     } else {
-                        unreachable!("Not OK");
+                        unreachable!("Not OK Packet");
                     }
                 }
                 pkt_bits
@@ -180,7 +180,7 @@ fn main() {
         })
         .collect::<Vec<_>>();
 
-    println!("Binary {:?}", binary);
+    //println!("Binary {:?}", binary);
     let (pkt, _rest) = Packet::from(binary).unwrap();
     println!("{:?}", pkt);
     let sum = pkt.sum_versions();
