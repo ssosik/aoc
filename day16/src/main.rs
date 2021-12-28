@@ -159,6 +159,31 @@ impl Packet {
             }
         }
     }
+
+    fn value(&self) -> usize {
+        match &self.payload {
+            Payload::Literal(val) => *val,
+            Payload::Operator(pkts) => match self.type_id {
+                0 => pkts.iter().map(|p| p.value()).sum::<usize>(),
+                1 => pkts.iter().map(|p| p.value()).product::<usize>(),
+                2 => pkts.iter().map(|p| p.value()).min().unwrap(),
+                3 => pkts.iter().map(|p| p.value()).max().unwrap(),
+                5 => match pkts[0].value() > pkts[1].value() {
+                    true => 1,
+                    _ => 0,
+                },
+                6 => match pkts[0].value() < pkts[1].value() {
+                    true => 1,
+                    _ => 0,
+                },
+                7 => match pkts[0].value() == pkts[1].value() {
+                    true => 1,
+                    _ => 0,
+                },
+                x => unreachable!("Unsupported type id: {:?}", x),
+            },
+        }
+    }
 }
 
 fn main() {
@@ -185,4 +210,6 @@ fn main() {
     println!("{:?}", pkt);
     let sum = pkt.sum_versions();
     println!("Sum {}", sum);
+    let val = pkt.value();
+    println!("Val {}", val);
 }
