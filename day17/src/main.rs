@@ -24,9 +24,9 @@ enum FlightStatus {
 
 impl Projectile {
     fn step(&mut self) -> bool {
-        println!("Step {}", self);
+        //println!("Step {}", self);
         self.x += self.velocity_x;
-        self.y = self.y + self.velocity_y;
+        self.y += self.velocity_y;
         self.velocity_x += match self.velocity_x {
             x if x > 0 => -1,
             x if x < 0 => 1,
@@ -46,21 +46,29 @@ impl Projectile {
 }
 
 fn main() {
-    let mut p = Projectile {
-        x: 0,
-        y: 0,
-        max_y: 0,
-        velocity_x: 6,
-        velocity_y: 9,
-        target_x: 20..30,
-        //target_x: 265..287,
-        target_y: -10..-5,
-        //target_y: -103..-58,
-        status: FlightStatus::Unreached,
-    };
+    let mut max = 0;
+    for vel_y in 0..200 {
+        for vel_x in 0..200 {
+            let mut p = Projectile {
+                x: 0,
+                y: 0,
+                max_y: max,
+                velocity_x: vel_x,
+                velocity_y: vel_y,
+                target_x: 20..30,
+                //target_x: 265..287,
+                target_y: -10..-5,
+                //target_y: -103..-58,
+                status: FlightStatus::Unreached,
+            };
 
-    while p.status == FlightStatus::Unreached {
-        p.step();
+            while p.status == FlightStatus::Unreached {
+                p.step();
+            }
+            if p.status == FlightStatus::Hit {
+                println!("Projectile {}", p);
+                max = cmp::max(max, p.max_y);
+            }
+        }
     }
-    println!("Projectile {}", p);
 }
