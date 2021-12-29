@@ -50,10 +50,12 @@ fn main() {
         x: 0,
         y: 0,
         max_y: 0,
-        velocity_x: 7,
-        velocity_y: 2,
+        velocity_x: 6,
+        velocity_y: 9,
         target_x: 20..30,
+        //target_x: 265..287,
         target_y: -10..-5,
+        //target_y: -103..-58,
         status: FlightStatus::Unreached,
     };
 
