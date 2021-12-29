@@ -47,8 +47,8 @@ impl Projectile {
 
 fn main() {
     let mut max = 0;
-    for vel_y in 0..200 {
-        for vel_x in 0..200 {
+    for vel_y in 0..1000 {
+        for vel_x in 0..1000 {
             let mut p = Projectile {
                 x: 0,
                 y: 0,
