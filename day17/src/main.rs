@@ -3,7 +3,7 @@ use std::cmp;
 use std::ops::Range;
 
 #[derive(Debug, Display)]
-#[display(fmt = "({},{}) {}", "x", "y", "status")]
+#[display(fmt = "Loc:({},{}) {} MaxY {}", "x", "y", "status", "max_y")]
 struct Projectile {
     x: isize,
     y: isize,
@@ -26,15 +26,14 @@ impl Projectile {
     fn step(&mut self) -> bool {
         println!("Step {}", self);
         self.x += self.velocity_x;
-        let new_y = self.y + self.velocity_y;
+        self.y = self.y + self.velocity_y;
         self.velocity_x += match self.velocity_x {
             x if x > 0 => -1,
             x if x < 0 => 1,
             _ => 0,
         };
         self.velocity_y -= 1;
-        self.max_y = cmp::max(self.y, new_y);
-        self.y = new_y;
+        self.max_y = cmp::max(self.y, self.max_y);
 
         if self.target_x.contains(&self.x) && self.target_y.contains(&self.y) {
             self.status = FlightStatus::Hit;
@@ -51,8 +50,8 @@ fn main() {
         x: 0,
         y: 0,
         max_y: 0,
-        velocity_x: 5,
-        velocity_y: 5,
+        velocity_x: 7,
+        velocity_y: 2,
         target_x: 20..30,
         target_y: -10..-5,
         status: FlightStatus::Unreached,
@@ -61,5 +60,5 @@ fn main() {
     while p.status == FlightStatus::Unreached {
         p.step();
     }
-    println!("Projectile {:?}", p);
+    println!("Projectile {}", p);
 }
