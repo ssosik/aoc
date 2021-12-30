@@ -3,7 +3,7 @@ use std::cmp;
 use std::ops::RangeInclusive;
 
 #[derive(Debug, Display)]
-#[display(fmt = "({},{}) MaxY {}", "initial_velocity_x", "initial_velocity_y", "max_y")]
+#[display(fmt = "{},{}", "initial_velocity_x", "initial_velocity_y")]
 struct Projectile {
     x: isize,
     y: isize,
@@ -25,7 +25,12 @@ enum FlightStatus {
 }
 
 impl Projectile {
-    fn new(vel_x: isize, vel_y: isize, targ_x: RangeInclusive<isize>,targ_y: RangeInclusive<isize>) -> Projectile {
+    fn new(
+        vel_x: isize,
+        vel_y: isize,
+        targ_x: RangeInclusive<isize>,
+        targ_y: RangeInclusive<isize>,
+    ) -> Projectile {
         Projectile {
             x: 0,
             y: 0,
@@ -51,9 +56,12 @@ impl Projectile {
         self.velocity_y -= 1;
         self.max_y = cmp::max(self.y, self.max_y);
 
+        //println!("Current Location {} {}", self.x, self.y);
         if self.target_x.contains(&self.x) && self.target_y.contains(&self.y) {
+            //println!("Hit at Location {} {}", self.x, self.y);
             self.status = FlightStatus::Hit;
-        } else if self.target_x.end() < &self.x || self.target_y.end() > &self.y {
+        } else if self.target_x.end() < &self.x || self.target_y.start() > &self.y {
+            //println!("PAST at Location {} {}", self.x, self.y);
             self.status = FlightStatus::Past;
         }
 
@@ -66,14 +74,15 @@ fn main() {
     let mut hit_cnt = 0;
     for vel_y in -1000..1000 {
         for vel_x in 0..1000 {
-            let mut p = Projectile::new(vel_x, vel_y, 20..=30, -10..=-5);
-            //let mut p = Projectile::new(vel_x, vel_y, 265..=287, -103..=-58);
+            //let mut p = Projectile::new(vel_x, vel_y, 20..=30, -10..=-5);
+            let mut p = Projectile::new(vel_x, vel_y, 265..=287, -103..=-58);
 
+            //println!("Testing projectile {}", p);
             while p.status == FlightStatus::Unreached {
                 p.step();
             }
             if p.status == FlightStatus::Hit {
-                println!("Projectile {}", p);
+                println!("{}", p);
                 max = cmp::max(max, p.max_y);
                 hit_cnt += 1;
             }
