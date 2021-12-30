@@ -3,11 +3,13 @@ use std::cmp;
 use std::ops::RangeInclusive;
 
 #[derive(Debug, Display)]
-#[display(fmt = "Loc:({},{}) {} MaxY {}", "x", "y", "status", "max_y")]
+#[display(fmt = "({},{}) MaxY {}", "initial_velocity_x", "initial_velocity_y", "max_y")]
 struct Projectile {
     x: isize,
     y: isize,
     max_y: isize,
+    initial_velocity_x: isize,
+    initial_velocity_y: isize,
     velocity_x: isize,
     velocity_y: isize,
     target_x: RangeInclusive<isize>,
@@ -23,6 +25,20 @@ enum FlightStatus {
 }
 
 impl Projectile {
+    fn new(vel_x: isize, vel_y: isize, targ_x: RangeInclusive<isize>,targ_y: RangeInclusive<isize>) -> Projectile {
+        Projectile {
+            x: 0,
+            y: 0,
+            max_y: 0,
+            initial_velocity_x: vel_x,
+            initial_velocity_y: vel_y,
+            velocity_x: vel_x,
+            velocity_y: vel_y,
+            target_x: targ_x,
+            target_y: targ_y,
+            status: FlightStatus::Unreached,
+        }
+    }
     fn step(&mut self) -> bool {
         //println!("Step {}", self);
         self.x += self.velocity_x;
@@ -50,18 +66,8 @@ fn main() {
     let mut hit_cnt = 0;
     for vel_y in -1000..1000 {
         for vel_x in 0..1000 {
-            let mut p = Projectile {
-                x: 0,
-                y: 0,
-                max_y: max,
-                velocity_x: vel_x,
-                velocity_y: vel_y,
-                target_x: 20..=30,
-                //target_x: 265..=287,
-                target_y: -10..=-5,
-                //target_y: -103..=-58,
-                status: FlightStatus::Unreached,
-            };
+            let mut p = Projectile::new(vel_x, vel_y, 20..=30, -10..=-5);
+            //let mut p = Projectile::new(vel_x, vel_y, 265..=287, -103..=-58);
 
             while p.status == FlightStatus::Unreached {
                 p.step();
