@@ -26,18 +26,7 @@ impl FromStr for Pair {
         }
         println!("C {}", head);
         println!("rest {:?}", rest);
-        
-        //for c in s.chars() {
-        //    println!("Char {}", c);
-        //}
-        //let coords: Vec<&str> = s.trim_matches(|p| p == '(' || p == ')' )
-        //                         .split(',')
-        //                         .collect();
 
-        //let x_fromstr = coords[0].parse::<i32>()?;
-        //let y_fromstr = coords[1].parse::<i32>()?;
-
-        //Ok(Pair { x: x_fromstr, y: y_fromstr })
         Ok(Pair{ x: PairItem::Num(3), y: PairItem::Num(5) })
     }
 }
