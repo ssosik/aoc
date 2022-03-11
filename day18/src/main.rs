@@ -1,9 +1,11 @@
 use std::io::{BufRead, BufReader};
 use std::str::FromStr;
 
+struct Depth(u8);
 struct Pair{
     x: PairItem,
     y: PairItem,
+    depth: Depth,
 }
 
 enum PairItem {
